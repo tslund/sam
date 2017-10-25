@@ -1,0 +1,9 @@
+FPP     = fpp
+FC      = ifort
+CC      = gcc
+MPIFC   = mpif90
+PP      = -DDEC
+FFLAGS  = -r8 -O3 -align all -ip -assume byterecl
+CFLAGS  = -O3
+LDFLAGS = 
+LIBMPI  = 

@@ -1,0 +1,9 @@
+FPP     = fpp
+FC      = ifort
+CC      = gcc
+MPIFC   = mpif90
+PP      = -DDEC
+FFLAGS  = -r8 -C -g -debug all -fpe0 -traceback -assume byterecl
+CFLAGS  = -O3
+LDFLAGS = 
+LIBMPI  = 
