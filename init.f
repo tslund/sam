@@ -74,10 +74,10 @@ c------ Set z index ranges
          Nz_spec = Nz_min + 1
       end if
 
-      if(l_root) print *, 'kx_max, ky_max, kz_max = ', 
-     &                     kx_max, ky_max, kz_max
-      if(l_root) print *, 'Nx_min, Ny_min, Nz_min, Nze = ',
-     &                     Nx_min, Ny_min, Nz_min, Nze
+c      if(l_root) print *, 'kx_max, ky_max, kz_max = ', 
+c     &                     kx_max, ky_max, kz_max
+c      if(l_root) print *, 'Nx_min, Ny_min, Nz_min, Nze = ',
+c     &                     Nx_min, Ny_min, Nz_min, Nze
 
 c------ Set up for the Chollet-Lesieur model
 
@@ -90,8 +90,10 @@ c------ Set up for the Chollet-Lesieur model
 
       time = 0.0
       dt = dt0
-
-c------ Set up for the Runge Kutta time stepping
+c------ Set up for the Runge Kutta time stepping.  Technically both
+c ----- RK1 and RK2 schemes are asymptotically unstable for pure advection.
+c ----- We set advective cfl limits for these at 1.0, but instabilities
+c ----- may still result.
 
       gamma = 0.0
       zeta  = 0.0
@@ -99,6 +101,8 @@ c------ Set up for the Runge Kutta time stepping
          gamma(1) = 1.0
          zeta(1)  = 0.0
          vis_cfl = 0.0
+         adv_cfl_limit = 1.0
+         vis_cfl_limit = 2.0
       end if
       if( nrk_max .eq. 2 ) then
          gamma(1) = 1.0
@@ -106,6 +110,8 @@ c------ Set up for the Runge Kutta time stepping
          zeta(1)  = 0.0
          zeta(2)  =-0.5
          vis_cfl = 2.0
+         adv_cfl_limit = 1.0
+         vis_cfl_limit = 2.0
       end if
       if( nrk_max .eq. 3 ) then
          gamma(1) = 8.0/15.0
@@ -115,6 +121,8 @@ c------ Set up for the Runge Kutta time stepping
          zeta(2)  =-17.0/60.0
          zeta(3)  =-5.0/12.0
          vis_cfl = 4.0
+         adv_cfl_limit = sqrt(3.0)
+         vis_cfl_limit = 2.51
       end if
       do n=1, 4
          beta(n) = 0.5*( zeta(n) + gamma(n) )

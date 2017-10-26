@@ -24,16 +24,17 @@ c***********************************************************************
 
       complex u(Nze,Ny_min,nxp,Lu)
       complex  alpha, beta1, div
-      real random(Nz_min,Ny_min,Lu)
+      real random(Nz_min,Ny_min,3)
       real k_mag, k_mag1
       real E(250,3), S(250)
+      integer iseed(2)
 
       pi = acos(-1.0)
       two_pi = 2.0*pi
       n_div = 0
 
       time = 0.0
-      nt = 1
+      nt = 0
       t_start  = time
       nt_start = nt
 
@@ -48,6 +49,9 @@ c***********************************************************************
          kx2 = k_x(ii)**2
          rkx = wave_x*float(k_x(ii))
          rkx2 = rkx**2
+         iseed(1) = 1234 + ii
+         iseed(2) = 6789 + ii
+         call random_seed( put=iseed )
          call random_number( random )
          do j=1, Ny_min
             k_sq2 = kx2 + k_y(j)**2
@@ -101,10 +105,10 @@ c           *** Construct a divergence-free velocity field with random phase
          end do
       end do
 
-      do i=1, 40
-         write(20,20) i-1, (E(i,n),n=1,3), S(i)
-20       format(i5,1p,4e12.4)
-      end do
+c      do i=1, 40
+c         write(20,20) i-1, (E(i,n),n=1,3), S(i)
+c20       format(i5,1p,4e12.4)
+c      end do
 
 c   *** Enforce Conjugate Symmetry on plane kx=0
 
@@ -129,6 +133,13 @@ c   *** Check initial divergence
      &              div_max
          ierr = 1
       end if
+
+c   *** Add a mean velocty
+
+c      if( izs .eq. 1 ) then
+c         Uo = 1.0e+3
+c         u(1,1,1,1) = cmplx(Uo,0.0)
+c      end if
 
       return
       end

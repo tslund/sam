@@ -32,8 +32,9 @@
      &                   ix_s( 0:maxp), ix_e( 0:maxp), nx_p(0:maxp),
      &                   iz_s( 0:maxp), iz_e( 0:maxp), nz_p(0:maxp)
 
-      common/tstep/ gamma(4), zeta(4), beta(4),
-     &              vis_cfl, w_cfl, cfl_by_dt, t_start,
+      common/tstep/ gamma(4), zeta(4), beta(4), t_start,
+     &              adv_cfl_limit, vis_cfl_limit,
+     &              cfl_x, cfl_y, cfl_z, cfl_vis,
      &              vis_fac_x(mLx), vis_fac_y(mLy), vis_fac_z(mLz),
      &              nrk, nt_start
 
@@ -53,5 +54,4 @@
 
       common/statistics/ t_stat0, 
      &                   u_avg(4), u_var(4), u_max(4), vis_max, energy,
-     &                   cfl_x, cfl_y, cfl_z, cfl_vis,
      &                   stat(Ls), stat_tmp(Ls)

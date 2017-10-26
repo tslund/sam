@@ -33,11 +33,20 @@
 
       energy = 0.5*( u_var(1) + u_var(2) + u_var(3) )
 
-      cfl_x   = u_max(1)*dx_inv
-      cfl_y   = u_max(2)*dy_inv
-      cfl_z   = u_max(3)*dz_inv
-      cfl_by_dt = max( cfl_x, cfl_y, cfl_z )
-      if( i_cfl .eq. 1 ) dt = cfl0/cfl_by_dt
+      cfl_x_by_dt = u_max(1)*kx_max*wave_x
+      cfl_y_by_dt = u_max(2)*ky_max*wave_y
+      cfl_z_by_dt = u_max(3)*kz_max*wave_z
+
+      if( i_cfl .eq. 1 ) then
+c         cfl_by_dt = sqrt( cfl_x_by_dt**2 + cfl_y_by_dt**2 +
+c     &                     cfl_z_by_dt**2 )
+         cfl_by_dt = max( cfl_x_by_dt, cfl_y_by_dt, cfl_z_by_dt )
+         dt = cfl0*adv_cfl_limit/cfl_by_dt
+      end if
+
+      cfl_x = cfl_x_by_dt*dt
+      cfl_y = cfl_y_by_dt*dt
+      cfl_z = cfl_z_by_dt*dt
 
       return
       end

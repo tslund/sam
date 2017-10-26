@@ -97,10 +97,6 @@ c ----- in order to compute statistics and spectra at the end of the run.
 
          do nrk=1, nrk_max
 
-            dt_fac1 = gamma(nrk)*dt
-            dt_fac2 = zeta( nrk)*dt
-            dt_fac = dt_fac1 + dt_fac2
-
 c         *** Compute the energy in the max shell for the C.-L. model
 
             if( nrk .eq. 1 .and. i_les .eq. 1 ) then
@@ -118,6 +114,7 @@ c ----------- physical space.  Use the second half of r() as workspace
 
 c ----------- Update the velocity with the previous right hand side.
 
+            dt_fac2 = zeta(nrk)*dt
             if( nrk .gt. 1 ) then
                do n=1, Lu
                   do i=1, nxp
@@ -149,10 +146,15 @@ c ----------- Compute and write spectra and statistics.
                call spectra( u, r, sample, ek_0, tk, dk, vt, energy_w,
      &                       div_rms, div_max, n_div, nt-1, work )
                if(l_root) then
-                  write(3,10) nt-1, time, dt, div_max, energy_w,
-     &                        u_max(1:3)
-10                format(i3,1p,7e11.3)
-                  write(6,10) nt-1, time, energy_w
+                  write(2,10) nt-1, time, energy_w
+                  write(6,10) nt-1, time, 
+     &                         0.5*(u_var(1)+u_var(2)+u_var(3))
+                  write(3,10) nt-1, time, div_max, u_max(1:Lu)
+                  write(7,10) nt-1, time, dt, cfl_x, cfl_y, cfl_z,
+     &                        cfl_vis
+                  write(12,10) nt-1, time, u_var(1:Lu),
+     &                         0.5*(u_var(1)+u_var(2)+u_var(3))
+10                format(i6,1p11e12.4)
                   if( i_prob .eq. 2 ) then
                      write(9,20) time*tfact+t0_cbc, energy_w
 20                   format(1p,2e12.4)
@@ -164,6 +166,8 @@ c ----------- Compute and write spectra and statistics.
 c ----------- Update the velocity with the current right hand side.
 c ----------- Use integrating factors to advance the viscous terms.
 
+            dt_fac1 = gamma(nrk)*dt
+            dt_fac = dt_fac1 + dt_fac2
             do n=1, Lu
                do i=1, nxp
                   ii = ixs + i-1
@@ -194,8 +198,11 @@ c                        vis_fac = 1.0
 
 c -------- Write velocity field
 
-         if( mod(nt,n_skip_v) .eq. 0 .or. nt .eq. nt_end ) then
-            write(ext,'(i6.6)') nt
+50       if( mod(nt,n_skip_v) .eq. 0 .or. nt .eq. nt_end .or.
+     &       n_steps .eq. 0 ) then
+            nt_out = nt
+            if( n_steps .eq. 0 ) nt_out = 0
+            write(ext,'(i6.6)') nt_out
             if(l_root) then
                call write_header( 'header.'//ext, labels, values )
             end if
@@ -204,7 +211,7 @@ c -------- Write velocity field
 
       end do
 
-50    call mpi_finalize( ierr )
+      call mpi_finalize( ierr )
 
       stop
       end
