@@ -20,6 +20,8 @@
          call sinti( Nz-1, trigzs )
          call costi( Nz+1, trigzc )
       end if
+      call rffti( Nz, trigzr )
+      call rffti( Ny, trigyr )
          
       i_symm = 0
       if( iubc_z .ne. 0 ) then
@@ -39,11 +41,13 @@
       k_truncate_sq = k_truncate**2
 
       Nx2 = Nx/2
-      Nz_inv = 1.0/float(Nz)
       NxNy = Nx*Ny
       NxNy_inv = 1.0/float(NxNy)
       NxNyNz = Nx*Ny*Nz
       NxNyNz_inv = 1.0/float(NxNyNz)
+      Nx_inv = 1.0/float(Nx)
+      Ny_inv = 1.0/float(Ny)
+      Nz_inv = 1.0/float(Nz)
 
       wave_x = 2.0*pi/xL
       do i=1, kx_max+1

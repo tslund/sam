@@ -15,11 +15,12 @@
       character( 6) ext
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params)
+      logical        fixed(L_params), write_params
       integer       i_symm1(4)
       integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
       integer amode, status(mpi_status_size)
 
+      write_params = .false.
 
 c------ Initialize MPI, get myid, numprocs, and test if on root process
 
@@ -33,7 +34,7 @@ c------ Initialize MPI, get myid, numprocs, and test if on root process
 
 c------ Get input parameters
 
-      call input_p( 'input.dat', labels, values, fixed )
+      call input_p( 'input.dat', labels, values, fixed, write_params )
 
 c------ Initialize constants and other parameter values.  Open files.
 

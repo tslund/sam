@@ -26,6 +26,39 @@ c   *** Make sure the static dimensions are sufficient
          return
       end if
 
+c   *** Set default planes output positions
+
+      i = index_param( 'n_skip_p', labels, n_inputs )
+
+      if( found(i) .and. k_xy_plane(1) .eq. 0 ) then
+         k_xy_plane(1) = Nz/2 + 1
+      end if
+
+      if( found(i) .and. j_xz_plane(1) .eq. 0 ) then
+         j_xz_plane(1) = Ny/2 + 1
+      end if
+
+      if( found(i) .and. i_yz_plane(1) .eq. 0 ) then
+         i_yz_plane(1) = Nx/2 + 1
+      end if
+
+c   *** Determine the number of planes to be written
+
+      do i=1, 9
+         if( k_xy_plane(i) .eq. 0 ) goto 1
+      end do
+1     n_xy_planes = i-1
+
+      do i=1, 9
+         if( j_xz_plane(i) .eq. 0 ) goto 2
+      end do
+2     n_xz_planes = i-1
+
+      do i=1, 9
+         if( i_yz_plane(i) .eq. 0 ) goto 3
+      end do
+3     n_yz_planes = i-1
+
 c   *** Perform an initial check for missing required inputs
 
       do i=1, n_inputs
@@ -52,6 +85,21 @@ c   *** other read-in parameter values.
 
       if( i_force .eq. 1 ) then
          i = index_param( 'k_force', labels, n_inputs )
+         required(i) = .true.
+      end if
+
+      if( i_strat .eq. 1 ) then
+         i = index_param( 'lapse0', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'grav', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'z0', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'rho_o', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'to', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'pr', labels, n_inputs )
          required(i) = .true.
       end if
 

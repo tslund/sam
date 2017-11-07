@@ -1,9 +1,10 @@
-      subroutine rhs( u, uu, r, work )
+      subroutine rhs( u, uu, r, u_sav, work )
 
       include 'sam.h'
 
       real u(Nx,Ny,nzp,Lu), uu(Nx,Ny,nzp,Lr), work(Lw)
-      complex r(Nze,Ny_min,nxp,Lr+ipad_r), p
+      complex r(Nze,Ny_min,nxp,Lr+ipad_r), u_sav(Nz_min,Ny_min,nxp,3:4)
+      complex p
       integer i_symm2(10)
 
       Nr = Lr
@@ -69,50 +70,75 @@ c   *** Transform the non-linear terms to wave space
 c   *** Compute and project the stress divergence.  Save the pressure
 c   *** in r(:,:,:,Lu+1).
 
-      do i=1, nxp
-         ii = ixs + i-1
-         rkx = wave_x*float(k_x(ii))
-         rkx2 = rkx**2
-         do j=1, Ny_min
-            rky = wave_y*float(k_y(j))
-            rk_sq2 = rkx2 + rky**2
-            do k=1, Nz_min
-               rkz = wave_z*float(k_z(k))
-               rk_sq = rk_sq2 + rkz**2
-               rk_sq = max( rk_sq, 1.0e-10 )
-               r(k,j,i,1) = -iunit*( rkx*r(k,j,i,1) +
-     &                               rky*r(k,j,i,2) +
-     &                               rkz*r(k,j,i,4)   )
-               r(k,j,i,2) = -iunit*( rkx*r(k,j,i,2) +
-     &                               rky*r(k,j,i,3) +
-     &                               rkz*r(k,j,i,5)   )
-               r(k,j,i,3) = -iunit*( rkx*r(k,j,i,4) +
-     &                               rky*r(k,j,i,5) +
-     &                               rkz*r(k,j,i,6)   )
-               p = -iunit*( rkx*r(k,j,i,1) + rky*r(k,j,i,2) +
-     &                      rkz*r(k,j,i,3) )/rk_sq
-               r(k,j,i,1) = r(k,j,i,1) - iunit*rkx*p
-               r(k,j,i,2) = r(k,j,i,2) - iunit*rky*p
-               r(k,j,i,3) = r(k,j,i,3) - iunit*rkz*p
-               r(k,j,i,Lu+1) = p
-            end do
-         end do
-      end do
+      if( i_strat .eq. 0 ) then
 
-      if( i_strat .ne. 0 ) then
          do i=1, nxp
             ii = ixs + i-1
             rkx = wave_x*float(k_x(ii))
+            rkx2 = rkx**2
             do j=1, Ny_min
                rky = wave_y*float(k_y(j))
+               rk_sq2 = rkx2 + rky**2
                do k=1, Nz_min
                   rkz = wave_z*float(k_z(k))
-                  r(k,j,i,4) = -iunit*( rkx*r(k,j,i,7) +
-     &                                  rky*r(k,j,i,8) +
-     &                                  rkz*r(k,j,i,9)   )
+                  rk_sq = rk_sq2 + rkz**2
+                  rk_sq = max( rk_sq, 1.0e-10 )
+                  r(k,j,i,1) = -iunit*( rkx*r(k,j,i,1) +
+     &                                  rky*r(k,j,i,2) +
+     &                                  rkz*r(k,j,i,4)   )
+                  r(k,j,i,2) = -iunit*( rkx*r(k,j,i,2) +
+     &                                  rky*r(k,j,i,3) +
+     &                                  rkz*r(k,j,i,5)   )
+                  r(k,j,i,3) = -iunit*( rkx*r(k,j,i,4) +
+     &                                  rky*r(k,j,i,5) +
+     &                                  rkz*r(k,j,i,6)   )
+                  p = -iunit*( rkx*r(k,j,i,1) + rky*r(k,j,i,2) +
+     &                         rkz*r(k,j,i,3) )/rk_sq
+                  r(k,j,i,1) = r(k,j,i,1) - iunit*rkx*p
+                  r(k,j,i,2) = r(k,j,i,2) - iunit*rky*p
+                  r(k,j,i,3) = r(k,j,i,3) - iunit*rkz*p
+                  r(k,j,i,Lu+1) = p
                end do
             end do
          end do
+
+      else
+
+         do i=1, nxp
+            ii = ixs + i-1
+            rkx = wave_x*float(k_x(ii))
+            rkx2 = rkx**2
+            do j=1, Ny_min
+               rky = wave_y*float(k_y(j))
+               rk_sq2 = rkx2 + rky**2
+               do k=1, Nz_min
+                  rkz = wave_z*float(k_z(k))
+                  rk_sq = rk_sq2 + rkz**2
+                  rk_sq = max( rk_sq, 1.0e-10 )
+                  r(k,j,i,1) = -iunit*( rkx*r(k,j,i,1) +
+     &                                  rky*r(k,j,i,2) +
+     &                                  rkz*r(k,j,i,4)   )
+                  r(k,j,i,2) = -iunit*( rkx*r(k,j,i,2) +
+     &                                  rky*r(k,j,i,3) +
+     &                                  rkz*r(k,j,i,5)   )
+                  r(k,j,i,3) = -iunit*( rkx*r(k,j,i,4) +
+     &                                  rky*r(k,j,i,5) +
+     &                                  rkz*r(k,j,i,6)   ) +
+     &                         buoy_fac*u_sav(k,j,i,4)
+                  r(k,j,i,4) = -iunit*( rkx*r(k,j,i,7) +
+     &                                  rky*r(k,j,i,8) +
+     &                                  rkz*r(k,j,i,9)   ) -
+     &                            lapse*u_sav(k,j,i,3)
+                  p = -iunit*( rkx*r(k,j,i,1) + rky*r(k,j,i,2) +
+     &                         rkz*r(k,j,i,3) )/rk_sq
+                  r(k,j,i,1) = r(k,j,i,1) - iunit*rkx*p
+                  r(k,j,i,2) = r(k,j,i,2) - iunit*rky*p
+                  r(k,j,i,3) = r(k,j,i,3) - iunit*rkz*p
+                  r(k,j,i,Lu+1) = p
+               end do
+            end do
+         end do
+
       end if
 
       return

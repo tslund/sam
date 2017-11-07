@@ -1,4 +1,4 @@
-      subroutine input_p( fname, labels, values, fixed )
+      subroutine input_p( fname, labels, values, fixed, write_params )
 
       include 'sam.h'
       include 'mpif.h'
@@ -7,12 +7,12 @@
       character( 8) default_flag
       character(12) labels(*)
       real          values(*)
-      logical        fixed(*)
+      logical        fixed(*), write_params
       logical     required(L_params), found(L_params)
       pointer(ipr, rdat)
       pointer(ipi, idat)
       real    rdat(L_params)
-      integer idat(L_params)
+      integer idat(L_params), isend(4)
 
       call set_labels( labels, values, required, fixed )
 
@@ -49,23 +49,36 @@ c   *** Root checks for errors in the input values
 
       if( l_root ) then
          call check_inputs( labels, values, found, required, ierr )
+         isend(1) = ierr
+         isend(2) = n_xy_planes
+         isend(3) = n_xz_planes
+         isend(4) = n_yz_planes
       end if
 
-      call mpi_bcast( ierr, 1, mpi_integer, i_root, mpi_comm_world,
+      call mpi_bcast( isend, 4, mpi_integer, i_root, mpi_comm_world,
      &                ierr_mpi )
+
+      ierr        = isend(1)
+      n_xy_planes = isend(2)
+      n_xz_planes = isend(3)
+      n_yz_planes = isend(4)
 
       if( ierr .ne. 0 ) goto 99
 
 c   *** Root writes the input parameters to file params.out
 
-      if( l_root ) then
+      if( l_root .and. write_params ) then
+
          open(newunit=i_unit,file='params.out')
+
          do i=1, n_inputs
             default_flag = ' '
             if( .not. found(i) ) default_flag = 'DEFAULT'
             write(i_unit,*) labels(i), values(i), default_flag
          end do
+
          close(i_unit)
+
       end if
 
       return

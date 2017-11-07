@@ -23,6 +23,10 @@
       delta_sq = ( dx*dy*dz )**(2.0/3.0)
       delta_sq_inv = 1.0 / delta_sq
 
+      xL_inv = 1.0/xL
+      yL_inv = 1.0/yL
+      zL_inv = 1.0/zL
+
       if( i_strat .eq. 0 ) then
          Lu = 3
          Lr = 6
@@ -74,11 +78,6 @@ c------ Set z index ranges
          Nz_spec = Nz_min + 1
       end if
 
-c      if(l_root) print *, 'kx_max, ky_max, kz_max = ', 
-c     &                     kx_max, ky_max, kz_max
-c      if(l_root) print *, 'Nx_min, Ny_min, Nz_min, Nze = ',
-c     &                     Nx_min, Ny_min, Nz_min, Nze
-
 c------ Set up for the Chollet-Lesieur model
 
       if( i_les .eq. 1 ) then
@@ -88,8 +87,17 @@ c------ Set up for the Chollet-Lesieur model
          k_cl = int( Nx/3.0 )
       end if
 
+c------ Set up for stratified cases.
+
+      if( i_strat .eq. 1 ) then
+         buoy_fac = rho_o/To*grav
+      end if
+
+      pr_inv = 1.0/Pr
+
       time = 0.0
       dt = dt0
+
 c------ Set up for the Runge Kutta time stepping.  Technically both
 c ----- RK1 and RK2 schemes are asymptotically unstable for pure advection.
 c ----- We set advective cfl limits for these at 1.0, but instabilities

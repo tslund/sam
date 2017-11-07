@@ -37,6 +37,8 @@ c***********************************************************************
       nt = 0
       t_start  = time
       nt_start = nt
+      lapse = lapse0
+      n_frame_p = 0
 
       E = 0.0
       S = 0.0
@@ -140,6 +142,18 @@ c      if( izs .eq. 1 ) then
 c         Uo = 1.0e+3
 c         u(1,1,1,1) = cmplx(Uo,0.0)
 c      end if
+
+c   *** Initialize the temperature fluctuations to zero
+
+      if( i_strat .eq. 1 ) then
+         do i=1, nxp
+            do j=1, Ny_min
+               do k=1, Nze
+                  u(k,j,i,4) = cmplx(0.0,0.0)
+               end do
+            end do
+         end do
+      end if
 
       return
       end

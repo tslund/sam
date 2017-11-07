@@ -8,8 +8,10 @@
       complex  diff
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params)
+      logical        fixed(L_params), write_params
       integer       i_symm1(4)
+
+      write_params = .false.
 
 c------ Set mpi parameters
 
@@ -21,7 +23,7 @@ c------ Set mpi parameters
 
 c------ Get input parameters
 
-      call input( 'input.dat', labels, values, fixed )
+      call input( 'input.dat', labels, values, fixed, write_params )
 
 c------ Initialize constants and other parameter values.  Open files.
 

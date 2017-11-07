@@ -1,25 +1,36 @@
-Nx          18          number of points in x
-Ny          18          number of points in y
-Nz          18          number of points in z
-i_restart   1           0-new field, 1-read restart
-nt_restart  0           Restart field is at this time step
-i_les       0           0-DNS, 1-Chollet-lesiuer
-c_smag      4.8000E-02  Smagorinsky constant (used only when i_les=2)
-i_strat     0           0-unstratified, 1-stratified
-n_steps    50           number of time steps
-n_skip_h    5           skip factor for output
-i_stat      0           0-no stats, 1-new stats, 2-add stats to previous run
-i_cfl       0           0-fixed dt, 1-fixed cfl
-dt0         0.10000     dt,  used when cfl flag = 0
-cfl0        1.00000     cfl, used when cfl flag = 1
-nrk_max     3           time stepping scheme flag: 1-Euler, 2-RK2, 3-RK3
-n_dealias   1           0-none, 1-2/3 rule, 2-spherical 2/3 rule, 3-shifts
-xL          6.28318530717959 Box size in x
-yL          6.28318530717959 Box size in y
-zL          6.28318530717959 Box size in z
-iubc_z      0           0-periodic, 1-no-stress
-i_prob      2           initial spectrum: 0-white noise, 1-(k^-5/3), 2-CBC
-k_truncate  100.00000   truncation radius (overwritten when n_dealias>1)
-vis         0.0000E-01  viscosity
-i_force     0           forcing flag: 0-no forcing, 1-forcing
-k_force     2           maximum wavenumber to be forced (used only if i_force=1)
+Nx            120          number of points in x
+Ny            120          number of points in y
+Nz            120          number of points in z
+i_restart     0            0-new field, 1-read restart
+nt_restart    0            Restart field is at this time step
+i_les         0            0-DNS, 1-Chollet-lesiuer
+c_smag        4.80000E-02  Smagorinsky constant (used only when i_les=2)
+n_steps       0           number of time steps
+n_skip_h      10           skip factor for output
+n_skip_p      10           skip factor for output
+i_stat        0            0-no stats, 1-new stats, 2-add stats to previous run
+i_cfl         1            0-fixed dt, 1-fixed cfl
+dt0           4.40000E-05  dt,  used when cfl flag = 0
+cfl0          1.00000      cfl, used when cfl flag = 1
+nrk_max       3            time stepping scheme flag: 1-Euler, 2-RK2, 3-RK3
+n_dealias     1            0-none, 1-2/3 rule, 2-spherical 2/3 rule, 3-shifts
+i_yz_plane1   61           i index for 1st yz plane
+j_xz_plane1   61           j index for 1st xz plane
+k_xy_plane1   100          k index for 1st xy plane
+i_strat       1            0-unstratified, 1-stratified
+lapse0        1.00000E-02  Potential temperature Lapse rate 
+z0            0.00000E+00  Reference altitude
+rho_o         1.22500E+00  Density at reference altitude
+To            2.88150E+02  Temperature at reference altitude
+Uo            0.00000E+00  Velocity scale
+xL            6.28318530717959 Box size in x
+yL            6.28318530717959 Box size in y
+zL            6.28318530717959 Box size in z
+iubc_z        0            0-periodic, 1-no-stress
+i_prob        2            initial spectrum: 0-white noise, 1-(k^-5/3), 2-CBC
+k_truncate    100.00000    truncation radius (overwritten when n_dealias>1)
+grav          9.81000E+00  Gravitational acceleration
+vis           1.00000E-03  Kinematic viscosity
+Pr            1.00000      Prandtl number
+i_force       0            forcing flag: 0-no forcing, 1-forcing
+k_force       2            maximum wavenumber to be forced (for i_force=1)

@@ -7,7 +7,9 @@
 
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params)
+      logical        fixed(L_params), write_params
+
+      write_params = .true.
 
 c   *** Initialize MPI, get myid, numprocs, and test if on root process
 
@@ -28,7 +30,7 @@ c   *** Write a copyright message
      &            'Author: Thomas S. Lund, lund@cora.nwra.com',/)
       end if
 
-      call input_p( 'input.dat', labels, values, fixed )
+      call input_p( 'input.dat', labels, values, fixed, write_params )
 
 c   *** Determine index ranges for each process.
 

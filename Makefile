@@ -12,9 +12,10 @@ MPI_PROGRAMS    = sam             \
                   tst_input       \
                   tst_transpose   \
 
-SERIAL_PROGRAMS = tst_pointer     \
-                  check           \
+SERIAL_PROGRAMS = check           \
                   compare_vel     \
+                  planes2vtk      \
+                  tst_pointer     \
 
 
 #-------------------------------------------------------------------------------

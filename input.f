@@ -1,4 +1,4 @@
-      subroutine input( fname, labels, values, fixed )
+      subroutine input( fname, labels, values, fixed, write_params )
 
       include 'sam.h'
 
@@ -6,7 +6,7 @@
       character( 8) default_flag
       character(12) labels(*)
       real          values(*)
-      logical        fixed(*)
+      logical        fixed(*), write_params
       logical     required(L_params), found(L_params)
       pointer(ipr, rdat)
       pointer(ipi, idat)
@@ -29,15 +29,15 @@
       call check_inputs( labels, values, found, required, ierr )
       if( ierr .ne. 0 ) stop
 
-      open(newunit=i_unit,file='params.out')
-
-      do i=1, n_inputs
-         default_flag = ' '
-         if( .not. found(i) ) default_flag = 'DEFAULT'
-         write(i_unit,*) labels(i), values(i), default_flag
-      end do
-
-      close(i_unit)
+      if( write_params ) then
+         open(newunit=i_unit,file='params.out')
+         do i=1, n_inputs
+            default_flag = ' '
+            if( .not. found(i) ) default_flag = 'DEFAULT'
+            write(i_unit,*) labels(i), values(i), default_flag
+         end do
+         close(i_unit)
+      end if
 
       return
       end
