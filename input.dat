@@ -1,36 +1,40 @@
-Nx            120          number of points in x
-Ny            120          number of points in y
-Nz            120          number of points in z
+Nx            72           number of points in x
+Ny            1            number of points in y
+Nz            24           number of points in z
 i_restart     0            0-new field, 1-read restart
 nt_restart    0            Restart field is at this time step
 i_les         0            0-DNS, 1-Chollet-lesiuer
 c_smag        4.80000E-02  Smagorinsky constant (used only when i_les=2)
-n_steps       0           number of time steps
+n_steps       100         number of time steps
 n_skip_h      10           skip factor for output
 n_skip_p      10           skip factor for output
 i_stat        0            0-no stats, 1-new stats, 2-add stats to previous run
-i_cfl         1            0-fixed dt, 1-fixed cfl
-dt0           4.40000E-05  dt,  used when cfl flag = 0
-cfl0          1.00000      cfl, used when cfl flag = 1
+i_cfl         0            0-fixed dt, 1-fixed cfl
+dt0           3.00000E-02  dt,  used when cfl flag = 0
+cfl0          0.90000      cfl, used when cfl flag = 1
 nrk_max       3            time stepping scheme flag: 1-Euler, 2-RK2, 3-RK3
 n_dealias     1            0-none, 1-2/3 rule, 2-spherical 2/3 rule, 3-shifts
-i_yz_plane1   61           i index for 1st yz plane
-j_xz_plane1   61           j index for 1st xz plane
-k_xy_plane1   100          k index for 1st xy plane
+i_yz_plane1   36           i index for 1st yz plane
+j_xz_plane1   1            j index for 1st xz plane
+k_xy_plane1   12           k index for 1st xy plane
 i_strat       1            0-unstratified, 1-stratified
-lapse0        1.00000E-02  Potential temperature Lapse rate 
+lapse0        1.00000E+00  Potential temperature Lapse rate 
 z0            0.00000E+00  Reference altitude
-rho_o         1.22500E+00  Density at reference altitude
-To            2.88150E+02  Temperature at reference altitude
-Uo            0.00000E+00  Velocity scale
-xL            6.28318530717959 Box size in x
-yL            6.28318530717959 Box size in y
-zL            6.28318530717959 Box size in z
+To            1.00000E+00  Temperature at reference altitude
+i_prob       -4            problem type: 0-white, 1-k^-5/3, 2-CBC, 4-GW
+amplitude     1.00000      Gravity wave amplitude
+lambda_x      3.00000      Streamwise wavelength for GW
+Gam           3.00000E+00  Gravity wave lambda_x/lambda_z
+#omega         0.00000E+00  Gravity wave (ground-based) frequency
+Uo            0.00000E+00  Mean horizontal wind
+xL            3.00000      Box size in x
+yL            0.05000      Box size in y
+#zL            0.948683     Box size in z
+zL            1.00000      Box size in z
 iubc_z        0            0-periodic, 1-no-stress
-i_prob        2            initial spectrum: 0-white noise, 1-(k^-5/3), 2-CBC
 k_truncate    100.00000    truncation radius (overwritten when n_dealias>1)
-grav          9.81000E+00  Gravitational acceleration
-vis           1.00000E-03  Kinematic viscosity
+grav         39.478417604  Gravitational acceleration
+vis           0.00000E+00  Kinematic viscosity
 Pr            1.00000      Prandtl number
 i_force       0            forcing flag: 0-no forcing, 1-forcing
 k_force       2            maximum wavenumber to be forced (for i_force=1)

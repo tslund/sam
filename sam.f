@@ -44,7 +44,11 @@ c------ Get input parameters
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( )
+      call init( write_params, ierr )
+      if( ierr .ne. 0 ) then
+         call mpi_finalize(ierr)
+         stop
+      end if
 
       call fft_init( )
 
@@ -86,8 +90,13 @@ c      print *, 'myid, ipad_r, n_wp = ', myid, ipad_r, n_wp
       allocate( u(Nze,Ny_min,nxp,Lu), r(Nze,Ny_min,nxp,Lr+ipad_r),
      &          uu(Nx,Ny,nzp,Lr), work(Lw),
      &          sample(Lm), ek(Lm), tk(Lm), dk(Lm), vt(Lm), ek_0(Lm) )
+      ius_s = 0
+      ius_e = 0
       if( i_strat .eq. 1 ) then
-         allocate( u_sav(Nz_min,Ny_min,nxp,3:4) )
+         ius_s=3
+         ius_e=4
+         if( i_prob .eq. 4 ) ius_s=2
+         allocate( u_sav(Nz_min,Ny_min,nxp,ius_s:ius_e) )
       end if
  
 c------ Either read or generate a new velocity field
@@ -161,6 +170,15 @@ c ----------- Save a copy of the w velocity and the temperature for
 c ----------- stratified cases.  Also compute the lapse rate.
 
             if( i_strat .eq. 1 ) then
+               if( i_prob .eq. 4 ) then
+                  do i=1, nxp
+                     do j=1, Ny_min
+                        do k=1, Nz_min
+                           u_sav(k,j,i,2) = u(k,j,i,1)
+                        end do
+                     end do
+                  end do
+               end if
                do n=3, 4
                   do i=1, nxp
                      do j=1, Ny_min

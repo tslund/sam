@@ -4,30 +4,37 @@
 
       real Nx_inv, Ny_inv, Nz_inv, NxNy_inv, NxNyNz_inv
       real l_cbc, m_cbc
-      real k_truncate, k_truncate_sq, lapse, lapse0, lambda_x
+      real k_truncate, k_truncate_sq, lapse_x, lapse_z, lapse0,
+     &     lambda_x, lambda_z, k_w, m_w, N_sq
       complex iunit
       integer fh
+      logical l_root
 
       common/params/ xL, yL, zL, c_smag, dt0, cfl0, k_truncate,
-     &               z0, rho_o, To, lapse0, grav, vis, Pr,
-     &               lambda_x, Gam, omega, Uo,
+     &               z0, To, lapse0, grav, vis, Pr,
+     &               amplitude, lambda_x, Gam, omega, Uo,
+     &               flct_u, flct_t,
      &               Nx, Ny, Nz, i_restart, nt_restart, i_strat, i_les,
      &               n_steps, n_skip_h, n_skip_p, n_skip_v, n_skip_s,
      &               k_xy_plane(9), j_xz_plane(9), i_yz_plane(9),
      &               i_stat, i_cfl, nrk_max, n_dealias, iubc_z, 
      &               i_prob, i_force, k_force
 
-      common/run_time/ time, dt, t_stat, lapse, nt, n_frame_p, n_hist
+      common/run_time/ time, dt, t_stat, nt, n_frame_p, n_hist
 
       common/consts/ pi, two_pi, iunit
 
-      common/strat/ buoy_fac, Pr_inv
+      common/strat/ buoy_fac_x, buoy_fac_z, Pr_inv, To_inv
+
+      common/gravity_wave/ N_sq, k_w, m_w, omega_i, lambda_z,
+     &                     lapse_x, lapse_z,
+     &                     i_gw_type
 
       common/dimensions/ Lu, Lr, Lw, Lm, Nze, ipad_r,
      &                   Nx_min, Ny_min, Nz_min,
      &                   n_inputs_r, n_inputs_i, n_inputs,
      &                   n_dynpar_r, n_dynpar_i, n_dynpar,
-     &                   n_params
+     &                   n_params, ius_s, ius_e
 
       common/mesh/ dx, dy, dz, dx_inv, dy_inv, dz_inv,
      &             xL_inv, yL_inv, zL_inv

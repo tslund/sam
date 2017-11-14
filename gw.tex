@@ -1,0 +1,218 @@
+\documentclass[12pt]{article}
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\textwidth}{6.0in}
+\setlength{\headsep}{-0.75in}
+\setlength{\textheight}{9.5in}
+
+\input{macros.tex}
+
+\begin{document}
+
+\section*{Gravity wave solution expressed in phase-aligned coordinates}
+
+The governing equations under the Boussinesq approximation for an inviscid
+fluid are
+%
+\begin{eqnarray}
+& & \parderiv{u_j}{x_j} =0\\
+& & \parderiv{u_i}{t} + u_j\parderiv{u_i}{x_j} + \parderiv{P}{x_i} =
+\frac{\rho}{\rho_0} f_i\\
+& & \parderiv{\theta}{t} + u_j\parderiv{\theta}{x_j} = 0
+\label{governing}
+\end{eqnarray}
+%
+where $f_i$ is a body force per unit mass and where $P=p/\rho_0$ is the
+kinematic pressure.  Now consider the decomposition of
+the solution into a background plus a deviation, viz
+%
+\begin{eqnarray}
+u_i & = & \bar{u}_i + u_i^\prime\\
+\theta & = & \bar{\theta} + \theta^\prime\\
+\rho & = & \bar{\rho} + \rho^\prime\\
+P & = & \bar{P} + P^\prime
+\label{perturbations}
+\end{eqnarray}
+%
+The undisturbed background is assumed to be in hydrostatic equilibrium so
+that
+%
+\begin{equation}
+\parderiv{\bar{P}}{x_i} = \frac{\bar{\rho}}{\rho_0} f_i
+\label{hydrostatic}
+\end{equation}
+%
+If this condition is subtracted from the momentum equation, the 
+decompositions given above, as well as the thermal expansion law
+$\rho^\prime/\rho_0=-\theta^\prime/\theta_0$ are used, the governing 
+equations become
+%
+\begin{eqnarray}
+& & \parderiv{u^\prime_j}{x_j} =0\\
+& & \parderiv{u^\prime_i}{t} + \bar{u}_j\parderiv{u^\prime_i}{x_j} + 
+u^\prime_j\parderiv{u^\prime_i}{x_j} +
+\parderiv{P^\prime}{x_i} = -\frac{\theta^\prime}{\theta_0} f_i\\
+& & \parderiv{\theta^\prime}{t} + \bar{u}_j\parderiv{\bar{\theta}}{x_j} +
+u^\prime_j\parderiv{\bar{\theta}}{x_j} + 
+\bar{u}_j\parderiv{\theta^\prime}{x_j} + 
+u^\prime_j\parderiv{\theta^\prime}{x_j} = 0
+\end{eqnarray}
+%
+where it has been assumed that the background solution is steady and that
+the background velocity is constant.
+
+Now consider a two-dimensional situation ($x$,$z$) where the perturbations
+do not depend on the $x$ coordinate and where the normal velocity component
+is zero
+%
+\begin{equation}
+u^\prime = u^\prime(z), \quad\quad w^\prime = 0, \quad\quad 
+\theta^\prime = \theta^\prime(z), \quad\quad P^\prime = P^\prime(z)
+\label{solution:form}
+\end{equation}
+%
+The continuity equation is satisfied identically under these conditions and
+all non-linear terms involving products of perturbations vanish.  If it 
+is assumed further that background potential temperature gradient is 
+perpindicular to the mean wind, then the first advective term in the $\theta$
+equation will also vanish.  In component form, the governing equations
+thus simplify to
+%
+\begin{eqnarray}
+& & \parderiv{u^\prime}{t} + \bar{w}\parderiv{u^\prime}{z} =
+-\frac{\theta^\prime}{\theta_0} f_x\\
+& & \parderiv{P^\prime}{z} = -\frac{\theta^\prime}{\theta_0} f_z\\
+& & \parderiv{\theta^\prime}{t} + 
+u^\prime\parderiv{\bar{\theta}}{x} +
+\bar{w}\parderiv{\theta^\prime}{z} = 0
+\label{simplified}
+\end{eqnarray}
+%
+Now consider a specific case where the background wind, background
+potential temperature gradient, body force, and solution for $\theta^\prime$
+are given as
+%
+\begin{eqnarray}
+\bar{u} = U_0\cos\beta \quad & \quad \bar{w} = U_0\sin\beta\\
+f_x = g\sin\beta \quad & \quad f_z = -g\cos\beta\\
+\parderiv{\bar{\theta}}{x} = -\Gamma\sin\beta \quad & \quad
+\theta^\prime = A\frac{\Gamma}{m}\cos(\tilde{m}z-\omega_i t)
+\end{eqnarray}
+%
+where 
+%
+\begin{equation}
+\cos\beta = \frac{m}{\sqrt{k^2+m^2}} \qquad 
+\sin\beta = \frac{k}{\sqrt{k^2+m^2}}
+\end{equation}
+%
+and where $k$ and $m$ are the GW solution wavenumbers in ground-based 
+coordinates.
+
+Consider first the special case where $U_0=0$.  Using this condition
+in addition to those given above, the $\theta^\prime$ equation becomes
+%
+\begin{equation}
+\omega_i A\frac{\Gamma}{m}\sin(\tilde{m}z-\omega_i t) - 
+u^\prime\Gamma\sin\beta = 0
+\label{thet}
+\end{equation}
+%
+Solving for $u^\prime$
+%
+\begin{equation}
+u^\prime = A\left(\frac{\omega_i}{m}\right)\frac{1}{\sin\beta}
+           \sin(\tilde{m}z-\omega_i t) =
+A c_i \left(\frac{1}{\cos\beta}\right)\sin(\tilde{m}z-\omega_i t)
+\label{uprime}
+\end{equation}
+%
+where $c_i = \omega_i/k$.
+
+The $u^\prime$ equation with $\bar{w}=0$ then evaluates to
+%
+\begin{equation}
+-A\left(\frac{\omega_i^2}{m}\right)\frac{1}{\sin\beta}
+\cos(\tilde{m}z-\omega_i t) =  -A\left(\frac{\Gamma g}{\theta_0}\right)
+\frac{\sin\beta}{m}\cos(\tilde{m}z-\omega_i t)
+\end{equation}
+%
+The term $(\Gamma g/\theta_0)$ is equal to $N^2$.  The dispersion relation
+gives $\omega_i^2 = N^2 k^2/(k^2 + m^2) = N^2\sin^2\beta$.  These results
+simplify the above equation to
+%
+\begin{equation}
+-A\left(\frac{N^2}{m}\right)\sin\beta
+\cos(\tilde{m}z-\omega_i t) =  -A\left(\frac{N^2}{m}\right)
+\sin\beta\cos(\tilde{m}z-\omega_i t)
+\end{equation}
+%
+which validates the dispersion relation used above.
+
+The pressure is found from the $z$ momentum equation
+%
+\begin{equation}
+\parderiv{P^\prime}{z} = A\left(\frac{\Gamma g}{\theta_0}\right)
+\left(\frac{\cos\beta}{m}\right)\cos(\tilde{m}z-\omega_i t) =
+A c_i^2\left(\frac{1}{\cos^2\beta}\right)m\cos\beta
+\cos(\tilde{m}z-\omega_i t)
+\end{equation}
+%
+which integrates to
+%
+\begin{equation}
+P^\prime = A c_i^2\left(\frac{1}{\cos^2\beta}\right)
+\left(\frac{m\cos\beta}{\tilde{m}}\right)
+\sin(\tilde{m}z-\omega_i t)
+\end{equation}
+%
+The wavenumber $\tilde{m}$ is
+%
+\begin{equation}
+\tilde{m} = \frac{2\pi}{\lambda} = \frac{2\pi}{\lambda_z\cos\beta} =
+\frac{m}{\cos\beta}
+\end{equation}
+%
+which simplifies the solution for the pressure to
+%
+\begin{equation}
+P^\prime = A c_i^2 \sin(\tilde{m}z-\omega_i t)
+\end{equation}
+%
+When $U_0\neq 0$, the $x$ momentum equation gives
+%
+\begin{eqnarray*}
+\parderiv{u}{t} & = & -\bar{w}\parderiv{u^\prime}{z} - 
+                      \frac{\theta^\prime}{\theta_0}f_x\\
+& = & -U_0\sin\beta A c_i \tilde{m} \left(\frac{1}{\cos\beta}\right)
+\cos(\tilde{m}z-\omega_i t) - A\left(\frac{\Gamma g}{\theta_0}\right)
+\left(\frac{\sin\beta}{m}\right)\cos(\tilde{m}z-\omega_i t)\\
+& = & -A c_i\left(\frac{\sin\beta}{\cos\beta}\right)\left( U_0\tilde{m} +
+c_i\sqrt{k^2+m^2} \right)\cos(\tilde{m}z-\omega_i t)\\
+& = & -A c_i \left(\frac{\sin\beta}{\cos\beta}\right)\left(
+\frac{U_0 m}{\cos\beta} + \frac{c_i m}{\cos\beta}\right)
+\cos(\tilde{m}z-\omega_i t)\\
+& = & -A c_i m\left(\frac{\sin\beta}{\cos^2\beta}\right)
+\left( U_0 + c_i\right) \cos(\tilde{m}z-\omega_i t)
+\end{eqnarray*}
+%
+Similarly, the $\theta^\prime$ equation becomes
+%
+\begin{eqnarray*}
+\parderiv{\theta^\prime}{t} & = & -u^\prime\parderiv{\bar{\theta}}{x}
+-\bar{w}\parderiv{\theta^\prime}{z}\\
+& = & A c_i \left(\frac{1}{\cos\beta}\right)\Gamma\sin\beta\sin(\tilde{m}z-\omega_i t) +
+U_0\sin\beta A \Gamma \left(\frac{\tilde{m}}{m}\right)
+\sin(\tilde{m}z-\omega_i t)\\
+& = & A \Gamma \left(\frac{\sin\beta}{\cos\beta}\right)
+\left(c_i + U_0\right) \sin(\tilde{m}z-\omega_i t)
+\end{eqnarray*}
+%
+The solutions for both $u^\prime$ and $\theta^\prime$ become steady if 
+%
+\begin{equation}
+U_0 = -c_i
+\end{equation}
+%
+
+
+\end{document}

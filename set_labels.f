@@ -28,16 +28,18 @@ c-------------------------------List reals first------------------------
       lab(i) = 'cfl0'         ; fix(i)=F; req(i)=F; val(i)=1.0   ; i=i+1
       lab(i) = 'k_truncate'   ; fix(i)=F; req(i)=F; val(i)=1e6   ; i=i+1
       lab(i) = 'z0'                     ; req(i)=F; val(i)=0.0   ; i=i+1
-      lab(i) = 'rho_o'                  ; req(i)=F; val(i)=1.0   ; i=i+1
       lab(i) = 'to'                     ; req(i)=F; val(i)=1.0   ; i=i+1
-      lab(i) = 'lapse0'                 ; req(i)=F; val(i)=0     ; i=i+1
-      lab(i) = 'grav'         ; fix(i)=F; req(i)=F; val(i)=0     ; i=i+1
+      lab(i) = 'lapse0'                 ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'grav'         ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'vis'          ; fix(i)=F                         ; i=i+1
       lab(i) = 'pr'           ; fix(i)=F; req(i)=F; val(i)=1.0   ; i=i+1
-      lab(i) = 'lambda_x'               ; req(i)=F; val(i)=1.0   ; i=i+1
-      lab(i) = 'gam'                    ; req(i)=F; val(i)=1.0   ; i=i+1
-      lab(i) = 'omega'                  ; req(i)=F; val(i)=1.0   ; i=i+1
-      lab(i) = 'uo'                     ; req(i)=F; val(i)=1.0   ; i=i+1
+      lab(i) = 'amplitude'              ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'lambda_x'               ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'gam'                    ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'omega'                  ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'uo'                     ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'flct_u'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'flct_t'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       n_inputs_r = i-1
 c-------------------------------Integers below this line----------------
       lab(i) = 'nx'                                              ; i=i+1
@@ -95,7 +97,6 @@ c-------------------------------List reals first------------------------
       lab(i) = 'time'                                            ; i=i+1
       lab(i) = 'dt'                                              ; i=i+1
       lab(i) = 't_stat'                                          ; i=i+1
-      lab(i) = 'lapse'                                           ; i=i+1
       n_dynpar_r = i-n_inputs-1
 c-------------------------------Integers below this line----------------
       lab(i) = 'nt'                                              ; i=i+1

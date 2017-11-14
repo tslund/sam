@@ -12,7 +12,7 @@
       pointer(ipr, rdat)
       pointer(ipi, idat)
       real    rdat(L_params)
-      integer idat(L_params), isend(4)
+      integer idat(L_params), isend(5)
 
       call set_labels( labels, values, required, fixed )
 
@@ -53,15 +53,17 @@ c   *** Root checks for errors in the input values
          isend(2) = n_xy_planes
          isend(3) = n_xz_planes
          isend(4) = n_yz_planes
+         isend(5) = i_gw_type
       end if
 
-      call mpi_bcast( isend, 4, mpi_integer, i_root, mpi_comm_world,
+      call mpi_bcast( isend, 5, mpi_integer, i_root, mpi_comm_world,
      &                ierr_mpi )
 
       ierr        = isend(1)
       n_xy_planes = isend(2)
       n_xz_planes = isend(3)
       n_yz_planes = isend(4)
+      i_gw_type   = isend(5)
 
       if( ierr .ne. 0 ) goto 99
 

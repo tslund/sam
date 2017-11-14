@@ -7,6 +7,7 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
 
       real,    allocatable, dimension (:,:,:) :: u, du
       real,    allocatable, dimension (:)     :: work
+      real(4), allocatable, dimension (:,:,:) :: xz_rot
       real(4), allocatable, dimension (:,:)   :: u_out
       real(4), allocatable, dimension (:)     :: x, y, z
       real          values(L_params)
@@ -25,13 +26,20 @@ c   *** Read input parameters and initialize stuff
 
       call input( 'input.dat', labels, values, fixed, write_params )
 
-      call init( )
+      call init( write_params, ierr )
+      if( ierr .ne. 0 ) stop
 
       call fft_init( )
 
       print *, 'enter the time step number start, stop, and skip factor'
       read(5,*) n_start, n_stop, n_skip
       n_skip = n_skip*n_skip_p
+
+      i_rotate = 0
+      if( i_prob .eq. 4 ) then
+         print *, 'rotate the box into earth-fixed coordinates? [0,1]'
+         read(5,*) i_rotate
+      end if
 
 c   *** Allocate arrays
 
@@ -41,6 +49,8 @@ c   *** Allocate arrays
 
       allocate( u(Nx,Ny,2*Lu), du(Nx,Ny,6), u_out(Nxp1,Nyp1), x(Nxp1),
      &          y(Nyp1), z(Nzp1), work(max(Nx,Ny,Nz)) )
+
+      if( i_rotate .eq. 1 ) allocate( xz_rot(3,Nxp1,Nzp1) )
 
 c   *** Define x and y mesh points
 
@@ -53,6 +63,19 @@ c   *** Define x and y mesh points
       do k=1, Nz+1
          z(k) = -0.5*zL + float(k-1)*dz
       end do
+
+      if( i_rotate .eq. 1 ) then
+         denom = 1.0/sqrt(lambda_x**2+lambda_z**2)
+         cos_theta = lambda_x*denom
+         sin_theta = lambda_z*denom
+         do k=1, Nzp1
+            do i=1, Nxp1
+               xz_rot(1,i,k) =  x(i)*cos_theta + z(k)*sin_theta
+               xz_rot(2,i,k) =  0.0
+               xz_rot(3,i,k) = -x(i)*sin_theta + z(k)*cos_theta
+            end do
+         end do
+      end if
 
 c   *** Define mesh point number character strings.
 
@@ -226,14 +249,21 @@ c   *** Loop over the xz frames, reading and writing the data
                write(16) "# vtk DataFile Version 2.0"//newline//
      &                   "written by planes2vtk t ="//time_string//
      &                   newline//"BINARY"//newline
-               write(16) "DATASET RECTILINEAR_GRID"//newline//
-     &                   "DIMENSIONS"//Nx_str//" 1 "//Nz_str//newline
-               write(16) "X_COORDINATES "//Nx_str//" float"//newline,
-     &                   x, newline
-               write(16) "Y_COORDINATES 1 float"//newline,
-     &                   y(j_xz_plane(m)), newline
-               write(16) "Z_COORDINATES "//Nz_str//" float"//newline,
-     &                   z, newline
+               if( i_rotate .eq. 1 ) then
+                  write(16) "DATASET STRUCTURED_GRID"//newline//
+     &                   "DIMENSIONS"//Nx_str//" 1 "//Nz_str//newline//
+     &                   "POINTS"//Nxz_str//" float"//newline
+                  write(16) xz_rot, newline
+               else
+                  write(16) "DATASET RECTILINEAR_GRID"//newline//
+     &                      "DIMENSIONS"//Nx_str//" 1 "//Nz_str//newline
+                  write(16) "X_COORDINATES "//Nx_str//" float"//newline,
+     &                      x, newline
+                  write(16) "Y_COORDINATES 1 float"//newline,
+     &                      y(j_xz_plane(m)), newline
+                  write(16) "Z_COORDINATES "//Nz_str//" float"//newline,
+     &                      z, newline
+               end if
                write(16) "POINT_DATA"//Nxz_str//newline
 
                do n=1, Lu+1

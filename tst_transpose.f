@@ -38,7 +38,8 @@ c------ Get input parameters
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( )
+      call init( write_params, ierr )
+      if( ierr .ne. 0 ) stop
 
       call fft_init( )
 

@@ -59,6 +59,55 @@ c   *** Determine the number of planes to be written
       end do
 3     n_yz_planes = i-1
 
+c   *** If this is a gravity wave problem check inputs for consistency
+c   *** and determine which two defining parameters are specified.
+
+      i_gw_type = 0
+
+      if( abs(i_prob) .eq. 4 ) then
+         i0 = index_param( 'lambda_x', labels, n_inputs )
+         i1 = index_param( 'gam'     , labels, n_inputs )
+         i2 = index_param( 'omega'   , labels, n_inputs )
+         i3 = index_param( 'uo'      , labels, n_inputs )
+         if( .not. found(i0) ) then
+            print *, 'ERROR: lambda_x is a required input for ',
+     &               'a GW problem'
+            ierr = 9
+            return
+         end if
+         if( found(i1) .and. found(i2) .and. found(i3) ) then
+            print *, 'ERROR: You can only specify two of Gam, ',
+     &               'omega, Uo for a GW problem'
+            ierr = 9
+            return
+         end if
+         if(      found(i1) .and. found(i2) ) then
+            i_gw_type = 1
+         else if( found(i1) .and. found(i3) ) then
+            i_gw_type = 2
+         else if( found(i2) .and. found(i3) ) then
+            i_gw_type = 3
+         else
+            print *, 'ERROR: You must specify exactly two of Gam, ',
+     &               'omega, Uo for a GW problem'
+            ierr = 6
+            return
+         end if
+         if( i_strat .ne. 1 ) then
+            print *, 'ERROR: i_strat must equal 1 for a GW problem'
+            ierr = 6
+            return
+         end if
+         if( i_prob .eq. -4 .and. 
+     &       (i_gw_type .eq. 1 .or. i_gw_type .eq. 2) .and.
+     &       abs(xL/zL-Gam) .gt. 1.0e-8 ) then
+            print *, 'ERROR: The computational box aspect ratio does ',
+     &               'agree with the GW parameter Gam'
+            ierr = 6
+            return
+         end if
+      end if
+
 c   *** Perform an initial check for missing required inputs
 
       do i=1, n_inputs
@@ -94,8 +143,6 @@ c   *** other read-in parameter values.
          i = index_param( 'grav', labels, n_inputs )
          required(i) = .true.
          i = index_param( 'z0', labels, n_inputs )
-         required(i) = .true.
-         i = index_param( 'rho_o', labels, n_inputs )
          required(i) = .true.
          i = index_param( 'to', labels, n_inputs )
          required(i) = .true.
@@ -141,7 +188,7 @@ c   *** Check for inconsistent parameter values
          goto 60
       end if
 
-      if( i_prob .lt. 0 .or. i_prob .gt. 2 ) then
+      if( i_prob .lt. -4 .or. i_prob .gt. 4 ) then
          i = index_param( 'i_prob', labels, n_inputs )
          goto 60
       end if

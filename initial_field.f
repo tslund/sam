@@ -8,8 +8,10 @@ c conditioned by a spherical truncation if desired (see k_truncate in  *
 c the argument list description below).                                *
 c                                                                      *
 c INPUT (ARGUMENT LIST):                                               *
-c   i_prob            - flag to declare initial spectrum shape:        *
-c                       0-white noise, 1-k^(-5/3), 2-Comte-Bellot      *
+c   i_prob            - flag to control the flow to be initialized:    *
+c                       0-white noise, 1-k^(-5/3), 2-Comte-Bellot,     *
+c                       4-gravity wave in a tilted box,                *
+c                      -4-gravity wave in a non-tilted box             *
 c PASSED IN COMMON                                                     *
 c   k_truncate        - maximum wavenumber passed by spherical         *
 c                       truncation.  Declared as real.  Set > Nx for   *
@@ -25,7 +27,7 @@ c***********************************************************************
       complex u(Nze,Ny_min,nxp,Lu)
       complex  alpha, beta1, div
       real random(Nz_min,Ny_min,3)
-      real k_mag, k_mag1
+      real k_mag, k_mag1, lambda
       real E(250,3), S(250)
       integer iseed(2)
 
@@ -37,8 +39,21 @@ c***********************************************************************
       nt = 0
       t_start  = time
       nt_start = nt
-      lapse = lapse0
+      lapse_z = lapse0
+      lapse_x = 0.0
       n_frame_p = 0
+
+      select case( i_prob )
+         case(0,4,-4); i_type = 0
+         case(1  )   ; i_type = 1
+         case(2  )   ; i_type = 2
+         case default; i_type = 0
+      end select
+
+      if( flct_u .eq. 0.0 .and. i_prob .ne. 2 ) then
+         u(1:Nze,1:Ny_min,1:nxp,1:3) = cmplx(0.0,0.0)
+         goto 50
+      end if
 
       E = 0.0
       S = 0.0
@@ -71,7 +86,7 @@ c***********************************************************************
 
 c            *** compute energy density from curve fit
 
-               f = sqrt(e_k( k_mag, i_prob )*factor)/k_mag1
+               f = sqrt(e_k( k_mag, i_type )*factor)/k_mag1
 
 c           *** Construct a divergence-free velocity field with random phase
 
@@ -117,13 +132,13 @@ c   *** Enforce Conjugate Symmetry on plane kx=0
       do i=1, nxp
          ii = ixs + i-1
          if( ii .eq. 1 ) then 
-            call enforce_symm( u, i )
+            call enforce_symm( u, 3, i )
          end if
       end do
 
-c   *** Rescale the velocity so that the velocity fluctuation is unity
+c   *** Rescale the velocity so that the fluctuation is flct_u
 
-      if( i_prob .lt. 2 ) call rescale( u )
+      if( i_prob .ne. 2 ) call rescale( u, 3, flct_u )
 
 c   *** Check initial divergence
 
@@ -136,30 +151,125 @@ c   *** Check initial divergence
          ierr = 1
       end if
 
-c   *** Add a mean velocty
+50    continue
 
-c      if( izs .eq. 1 ) then
-c         Uo = 1.0e+3
-c         u(1,1,1,1) = cmplx(Uo,0.0)
-c      end if
+c   *** Initialize the temperature fluctuations if required.
 
-c   *** Initialize the temperature fluctuations to zero
+      if( i_strat .eq. 0 ) goto 60
 
-      if( i_strat .eq. 1 ) then
-         do i=1, nxp
-            do j=1, Ny_min
-               do k=1, Nze
-                  u(k,j,i,4) = cmplx(0.0,0.0)
-               end do
+      if( flct_T .eq. 0.0 ) then
+         u(1:Nze,1:Ny_min,1:nxp,4) = cmplx(0.0,0.0)
+         goto 60
+      end if
+
+      do i=1, nxp
+         ii = ixs + i-1
+         kx2 = k_x(ii)**2
+         iseed(1) = 4321 + ii
+         iseed(2) = 9876 + ii
+         call random_seed( put=iseed )
+         call random_number( random )
+         do j=1, Ny_min
+            k_sq2 = kx2 + k_y(j)**2
+            do k=1, Nz_min
+               k_sq = k_sq2 + k_z(k)**2
+               k_mag = sqrt(float(k_sq))
+               k_mag1 = max(k_mag,1.0e-8)
+               f = sqrt(e_k( k_mag, 0 )*factor)/k_mag1
+               theta = two_pi*random(k,j,1)
+               u(k,j,i,4) = f*cexp(iunit*theta)
             end do
          end do
+      end do
+
+c   *** Enforce Conjugate Symmetry on plane kx=0
+
+      do i=1, nxp
+         ii = ixs + i-1
+         if( ii .eq. 1 ) then
+            call enforce_symm( u(1,1,1,4), 1, i )
+         end if
+      end do
+
+c   *** Rescale the temperature so that the fluctuation is flct_t
+
+      if( i_prob .ne. 2 ) call rescale( u(1,1,1,4), 1, flct_t )
+
+60    continue
+
+c   *** Add a mean velocty
+
+      if( ixs .eq. 1 ) then
+         u(1,1,1,1) = cmplx(Uo,0.0)
+      end if
+
+c   *** Initialize a gravity wave
+
+      if( i_prob .eq. -4 ) then
+
+         ix_w = nint(xL/lambda_x) + 1
+         iz_w = nint(zL/lambda_z) + 1
+
+         c_i = omega_i/k_w
+         amp_u = amplitude*c_i
+         amp_T = amplitude*lapse0/m_w
+         r1 = k_w/m_w
+
+         do i=1, nxp
+            ii = ixs + i-1
+            if( ii .eq. ix_w ) then
+               u(iz_w,1,i,1) = u(iz_w,1,i,1) +    amp_u*cmplx( 0.0,-0.5)
+               u(iz_w,1,i,3) = u(iz_w,1,i,3) - r1*amp_u*cmplx( 0.0,-0.5)
+               u(iz_w,1,i,4) = u(iz_w,1,i,4) +    amp_T*cmplx(-0.5, 0.0)
+            end if
+         end do
+
+         if( ixs .eq. 1 ) then
+            u(1,1,1,1) = cmplx(Uo,0.0)
+         end if
+
+      end if
+
+      if( i_prob .eq. 4 ) then
+
+         denom = 1.0/sqrt( lambda_x**2 + lambda_z**2 )
+         cos_theta = lambda_x*denom
+         sin_theta = lambda_z*denom
+         lambda = lambda_z*cos_theta
+         r1 = 1.0/cos_theta
+
+         iz_w  = nint(zL/lambda) + 1
+         iz_w1 = Nz_min+2 - iz_w
+
+         c_i = omega_i/k_w
+         amp_u = amplitude*r1*c_i
+         amp_T = amplitude*lapse0/m_w
+
+         if( l_root ) then
+            u(iz_w ,1,1,1) = u(iz_w,1,1,1) + amp_u*cmplx(0.0,0.5)
+            u(iz_w ,1,1,4) = u(iz_w,1,1,4) + amp_T*cmplx(0.5,0.0)
+            u(iz_w1,1,1,1) = conjg(u(iz_w,1,1,1))
+            u(iz_w1,1,1,4) = conjg(u(iz_w,1,1,4))
+         end if
+
+         buoy_fac = To_inv*grav
+         buoy_fac_x = -sin_theta*buoy_fac
+         buoy_fac_z =  cos_theta*buoy_fac
+         lapse_x = -lapse0*sin_theta
+         lapse_z =  lapse0*cos_theta
+
+         if( ixs .eq. 1 ) then
+            u(1,1,1,1) = cmplx(Uo*cos_theta,0.0)
+            u(1,1,1,3) = cmplx(Uo*sin_theta,0.0)
+         end if
+
       end if
 
       return
       end
 
 
-      function e_k( k, i_prob )
+      function e_k( k, i_type )
 
       real k
       real l, a42(0:6), a98(0:6), a171(0:6)
@@ -198,11 +308,11 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
       a171(6) = -0.54562E-02
 
 
-      if( i_prob .eq. 0 ) then
+      if( i_type .eq. 0 ) then
 
          e_k = k**2
 
-      else if( i_prob .eq. 1 ) then
+      else if( i_type .eq. 1 ) then
 
          if( k .eq. 0.0 ) then
             e_k = 0.0
@@ -210,7 +320,7 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
             e_k = k**(-5.0/3.0)
          end if
 
-      else if( i_prob .eq. 2 ) then
+      else if( i_type .eq. 2 ) then
 
          if( k .eq. 0.0 ) then
             e_k = 0.0
@@ -222,7 +332,7 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
             e_k = const2*exp( sum )
          end if
 
-      else if( i_prob .eq. 3 ) then
+      else if( i_type .eq. 3 ) then
 
          if( k .eq. 0.0 ) then
             e_k = 0.0
@@ -234,7 +344,7 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
             e_k = const2*exp( sum )
          end if
 
-      else if( i_prob .eq. 4 ) then
+      else if( i_type .eq. 4 ) then
 
          if( k .eq. 0.0 ) then
             e_k = 0.0
@@ -248,7 +358,7 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
 
       else
 
-         print *, 'ERROR bad i_prob in e_k'
+         print *, 'ERROR bad i_type in e_k'
          stop
 
       end if
@@ -257,19 +367,19 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
       end
 
 
-      subroutine enforce_symm( u, i )
+      subroutine enforce_symm( u, n_var, i )
 
       include 'sam.h'
 
-      complex u(Nze,Ny_min,nxp,Lu)
+      complex u(Nze,Ny_min,nxp,n_var)
 
       j=1; k=1
-      do n=1, Lu
+      do n=1, n_var
          u(k,j,i,n) = 0.5*( u(k,j,i,n) + conjg(u(k,j,i,n)) )
       end do
 
       k=1
-      do n=1, Lu
+      do n=1, n_var
          do j=ky_max+2, Ny_min
             jj = Ny_min+2 - j
             u(k,j,i,n) = conjg(u(k,jj,i,n))
@@ -277,14 +387,14 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
       end do
 
       j=1
-      do n=1, Lu
+      do n=1, n_var
          do k=kz_max+2, Nz_min
             kk = Nz_min+2 - k
             u(k,j,i,n) = conjg(u(kk,j,i,n))
          end do
       end do
 
-      do n=1, Lu
+      do n=1, n_var
          do j=2, Ny_min
             jj = Ny_min+2 - j
             do k=kz_max+2, Nz_min
@@ -298,20 +408,20 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
       end 
 
 
-      subroutine rescale( u )
+      subroutine rescale( u, n_var, flct )
 
       include 'sam.h'
       include 'mpif.h'
 
-      complex u(Nze,Ny_min,nxp,Lu)
+      complex u(Nze,Ny_min,nxp,n_var)
 
       sum1 = 0.0
-      do i=1, nxp
-         do j=1, Ny_min
-            do k=1, Nz_min
-            sum1 = sum1 + u(k,j,i,1)*conjg(u(k,j,i,1)) +
-     &                    u(k,j,i,2)*conjg(u(k,j,i,2)) +
-     &                    u(k,j,i,3)*conjg(u(k,j,i,3))
+      do n=1, n_var
+         do i=1, nxp
+            do j=1, Ny_min
+               do k=1, Nz_min
+                  sum1 = sum1 + u(k,j,i,n)*conjg(u(k,j,i,n))
+               end do
             end do
          end do
       end do
@@ -319,14 +429,14 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
       call mpi_allreduce( sum1, sum1g, 1, mpi_double_precision,
      &                    mpi_sum, mpi_comm_world, ierr )
 
-      u_rms_inv = sqrt(3.0)/sqrt( sum1g  )
+      scale = flct*sqrt(float(n_var))/sqrt( sum1g  )
 
-      do i=1, nxp
-         do j=1, Ny_min
-            do k=1, Nz_min
-               u(k,j,i,1) = u(k,j,i,1)*u_rms_inv
-               u(k,j,i,2) = u(k,j,i,2)*u_rms_inv
-               u(k,j,i,3) = u(k,j,i,3)*u_rms_inv
+      do n=1, n_var
+         do i=1, nxp
+            do j=1, Ny_min
+               do k=1, Nz_min
+                  u(k,j,i,n) = u(k,j,i,n)*scale
+               end do
             end do
          end do
       end do

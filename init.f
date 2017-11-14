@@ -1,10 +1,15 @@
-      subroutine init( )
+      subroutine init( write_params, ierr )
 
       include 'sam.h'
+
+      real lambda
+      logical write_params
 
       pi = acos(-1.0)
       two_pi = 2.0*pi
       iunit = cmplx( 0.0, 1.0 )
+
+      ierr = 0
 
       NxNy = Nx*Ny
       NxNyNz = NxNy*Nz
@@ -89,11 +94,17 @@ c------ Set up for the Chollet-Lesieur model
 
 c------ Set up for stratified cases.
 
-      if( i_strat .eq. 1 ) then
-         buoy_fac = rho_o/To*grav
-      end if
-
+      To_inv = 1.0/To
       pr_inv = 1.0/Pr
+
+      scale_h = To/lapse0
+      N_sq = grav*lapse0*To_inv
+
+      buoy_fac_x = 0.0
+      buoy_fac_z = 0.0
+      if( i_strat .eq. 1 ) then
+         buoy_fac_z = To_inv*grav
+      end if
 
       time = 0.0
       dt = dt0
@@ -145,6 +156,113 @@ c------ Set up for the Comte Bellot and Corrsin initial condition
       t0_cbc = 42.0
 
       tfact = ( l_cbc/(2*pi) / m_cbc ) * ( u_inf_cbc / u_0_cbc )
+
+c   *** Compute a complete set of gravity wave parameters according to the
+c   *** problem specification type.  In all cases we specify the horizontal
+c   *** wavelength.  For iprob=20 we also specify Uo and omega and compute
+c   *** Gam.  For iprob=21 we specify omega and Gam and compute Uo.  For
+c   *** iprob=22 we specify Uo and Gam and compute omega.  For
+c   *** upward-propagating momentum and energy flux, (wave specified at the
+c   *** lower boundary) the vertical wavenumber component (m_w) must be
+c   *** negative.  We assume an upward-propagating wave here.  In case it
+c   *** is ever needed, a wave with downward energy flux (initiated
+c   *** at the upper boundary) would have positive m_w.  The horizontal
+c   *** wavenumber is specified via k_w = -2*pi/char_L.  The minus sign
+c   *** results in negative horizontal phase speed when char_L is positive.
+c   *** This convention is useful for phase-locked simulations (omega=0),
+c   *** such as terrain-generated waves where a mean wind in the positive x
+c   *** direction results in an equal and opposite (and hence negative) phase
+c   *** velocity.  Thus this situation is conveniently specified by taking
+c   *** both Uo and char_L to be positive.  For a similar situation with
+c   *** wind in the negative x direction, one would specify both Uo and
+c   *** char_L as negative.  Note that Gam = lambda_x/lambda_z = abs(m_w/k_w),
+c   *** which is a positive definite quantity.
+
+c   *** Compute the GW parameters using the state at the first solution
+c   *** point (k=2).
+
+      if( abs(i_prob) .eq. 4 ) then
+
+         k_w = -two_pi/lambda_x
+
+         if( i_gw_type .eq. 3 ) then
+            Gam = sqrt( N_sq/(omega-k_w*Uo)**2 - 1.0 )
+         end if
+
+         m_w = -Gam*abs(k_w)    ! negative for upward propagating energy flux
+         omega_i = sqrt( N_sq/( 1.0 + Gam**2 ) )
+
+         if( i_gw_type .eq. 1 ) then
+            Uo = ( omega - omega_i )/k_w
+         end if
+
+         if( i_gw_type .eq. 2 ) then
+            omega = omega_i + k_w*Uo
+         end if
+
+         lambda_z = two_pi/abs(m_w)
+         char_u = sqrt(N_sq/m_w**2)
+
+         if( l_root .and. write_params ) then
+            write(6,16) k_w, m_w, sqrt(N_sq), omega_i, omega,
+     &                  Gam, Uo, char_u
+16          format('k_w, m_w = ', 1p,2e16.8,/,
+     &             'N        = ', 1p, e16.8,/,
+     &             'omega_i  = ', 1p, e16.8,/,
+     &             'omega    = ', 1p, e16.8,/,
+     &             'Gam      = ', 1p, e16.8,/,
+     &             'Uo       = ', 1p, e16.8,/,
+     &             'char_u   = ', 1p, e16.8,/ )
+         end if
+
+         if( i_prob .eq. -4 ) then
+            xL_old = xL
+            xL = nint(xL/lambda_x)*lambda_x
+            zL_old = zL
+            zL = nint(zL/lambda_z)*lambda_z
+            if( l_root .and. write_params .and.
+     &          abs(xL-xL_old) .gt. 1.0e-12 ) then
+               print *, 'WARNING: The computational box size xL ',
+     &                  'was recomputed to be an exact integer'
+               print *, 'multiple of the input GW parameter lambda_x'
+               print *, 'The old and new xL are ', xL_old, xL
+            end if
+            if( l_root .and. write_params .and. 
+     &          abs(zL-zL_old) .gt. 1.0e-12 ) then
+               print *, 'INFO: The computational box size zL ',
+     &                  'was recomputed to be an exact integer'
+               print *, 'multiple of the computed GW parameter lambda_z'
+               print *, 'The old and new zL are ', zL_old, zL
+            end if
+         end if
+
+         lambda = lambda_z*lambda_x/sqrt(lambda_x**2+lambda_z**2)
+         if( i_prob .eq. 4 ) then
+            zL_old = zL
+            zL = nint(zL/lambda)*lambda
+            if( l_root .and. write_params .and. 
+     &          abs(zL-zL_old) .gt. 1.0e-12 ) then
+               print *, 'INFO: The computational box size zL ',
+     &                  'was recomputed to be an exact integer'
+               print *, 'multiple of the computed GW parameter lambda'
+               print *, 'The old and new zL are ', zL_old, zL
+            end if
+         end if
+
+c   *** Compute non-dimensional parameters.
+
+         Re = char_u*lambda_z/(vis+1.0e-20)
+         Fr = char_u/sqrt(grav*lambda_z)
+
+         if( l_root .and. write_params ) then
+            write(6,15) lambda_z/scale_h, Re, Pr, Fr
+15          format(/,'lambda_z/scale_h = ',1p,e15.5,/,
+     &               'Reynolds number  = ',1p,e15.5,/,
+     &               'Prandtl  number  = ',1p,e15.5,/,
+     &               'Froude   number  = ',1p,e15.5,/ )
+         end if
+
+      end if
 
       return
       end
