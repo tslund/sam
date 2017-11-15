@@ -4,7 +4,7 @@
 
       real Nx_inv, Ny_inv, Nz_inv, NxNy_inv, NxNyNz_inv
       real l_cbc, m_cbc
-      real k_truncate, k_truncate_sq, lapse_x, lapse_z, lapse0,
+      real k_truncate, k_truncate_sq, lapse0, lapse,
      &     lambda_x, lambda_z, k_w, m_w, N_sq
       complex iunit
       integer fh
@@ -27,14 +27,14 @@
       common/strat/ buoy_fac_x, buoy_fac_z, Pr_inv, To_inv
 
       common/gravity_wave/ N_sq, k_w, m_w, omega_i, lambda_z,
-     &                     lapse_x, lapse_z,
+     &                     sin_theta, cos_theta, lapse,
      &                     i_gw_type
 
       common/dimensions/ Lu, Lr, Lw, Lm, Nze, ipad_r,
      &                   Nx_min, Ny_min, Nz_min,
      &                   n_inputs_r, n_inputs_i, n_inputs,
      &                   n_dynpar_r, n_dynpar_i, n_dynpar,
-     &                   n_params, ius_s, ius_e
+     &                   n_params
 
       common/mesh/ dx, dy, dz, dx_inv, dy_inv, dz_inv,
      &             xL_inv, yL_inv, zL_inv

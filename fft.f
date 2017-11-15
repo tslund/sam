@@ -1,3 +1,25 @@
+C
+C                      FFTPACK
+C
+C* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+C
+C                  version 4  april 1985
+C
+C     a package of fortran subprograms for the fast fourier
+C      transform of periodic and other symmetric sequences
+C
+C                         by
+C
+C                  paul n swarztrauber
+C
+C  national center for atmospheric research  boulder,colorado 80307
+C
+C   which is sponsored by the national science foundation
+C
+C* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+C
+C
+
 C     SUBROUTINE CFFTB(N,C,WSAVE)                                               
 C                                                                               
 C     SUBROUTINE CFFTB COMPUTES THE BACKWARD COMPLEX DISCRETE FOURIER           

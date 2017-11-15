@@ -90,13 +90,8 @@ c      print *, 'myid, ipad_r, n_wp = ', myid, ipad_r, n_wp
       allocate( u(Nze,Ny_min,nxp,Lu), r(Nze,Ny_min,nxp,Lr+ipad_r),
      &          uu(Nx,Ny,nzp,Lr), work(Lw),
      &          sample(Lm), ek(Lm), tk(Lm), dk(Lm), vt(Lm), ek_0(Lm) )
-      ius_s = 0
-      ius_e = 0
       if( i_strat .eq. 1 ) then
-         ius_s=3
-         ius_e=4
-         if( i_prob .eq. 4 ) ius_s=2
-         allocate( u_sav(Nz_min,Ny_min,nxp,ius_s:ius_e) )
+         allocate( u_sav(Nz_min,Ny_min,nxp,3:4) )
       end if
  
 c------ Either read or generate a new velocity field
@@ -174,20 +169,22 @@ c ----------- stratified cases.  Also compute the lapse rate.
                   do i=1, nxp
                      do j=1, Ny_min
                         do k=1, Nz_min
-                           u_sav(k,j,i,2) = u(k,j,i,1)
+                           u_sav(k,j,i,3) = cos_theta*u(k,j,i,3) -
+     &                                      sin_theta*u(k,j,i,1)
+                           u_sav(k,j,i,4) =           u(k,j,i,4)
+                        end do
+                     end do
+                  end do
+               else
+                  do i=1, nxp
+                     do j=1, Ny_min
+                        do k=1, Nz_min
+                           u_sav(k,j,i,3) = u(k,j,i,3)
+                           u_sav(k,j,i,4) = u(k,j,i,4)
                         end do
                      end do
                   end do
                end if
-               do n=3, 4
-                  do i=1, nxp
-                     do j=1, Ny_min
-                        do k=1, Nz_min
-                           u_sav(k,j,i,n) = u(k,j,i,n)
-                        end do
-                     end do
-                  end do
-               end do
 c               if( nrk .eq. 1 .and. i_symm(4) .eq. 0 ) then
 c                  if(l_root) then
 c                     call get_mean( u(1,1,1,4), i_symm(4), 1,
@@ -281,9 +278,9 @@ c ----------- Use integrating factors to advance the viscous terms.
 
             dt_fac1 = gamma(nrk)*dt
             dt_fac = dt_fac1 + dt_fac2
+            vis_f = vis*dt_fac
             do n=1, Lu
-               vis1 = vis
-               if( n .eq. 4 ) vis1 = vis*Pr_inv
+               if( n .eq. 4 ) vis_f = vis_f*Pr_inv
                do i=1, nxp
                   ii = ixs + i-1
                   rkx = wave_x*float(k_x(ii))
@@ -294,7 +291,7 @@ c ----------- Use integrating factors to advance the viscous terms.
                      do k=1, Nz_min
                         rkz = wave_z*float(k_z(k))
                         rk_sq = rk_sq2 + rkz**2
-                        vis_fac = exp(-vis1*rk_sq*dt_fac)
+                        vis_fac = exp(-vis_f*rk_sq)
                         u(k,j,i,n) = (u(k,j,i,n) + dt_fac1*r(k,j,i,n))*
      &                               vis_fac
                      end do

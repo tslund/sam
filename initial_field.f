@@ -39,8 +39,9 @@ c***********************************************************************
       nt = 0
       t_start  = time
       nt_start = nt
-      lapse_z = lapse0
-      lapse_x = 0.0
+      lapse = lapse0
+      buoy_fac_x = 0.0
+      buoy_fac_z = 0.0
       n_frame_p = 0
 
       select case( i_prob )
@@ -157,6 +158,10 @@ c   *** Initialize the temperature fluctuations if required.
 
       if( i_strat .eq. 0 ) goto 60
 
+      buoy_fac = To_inv*grav
+      buoy_fac_x = 0.0
+      buoy_fac_z = buoy_fac
+
       if( flct_T .eq. 0.0 ) then
          u(1:Nze,1:Ny_min,1:nxp,4) = cmplx(0.0,0.0)
          goto 60
@@ -252,11 +257,8 @@ c   *** Initialize a gravity wave
             u(iz_w1,1,1,4) = conjg(u(iz_w,1,1,4))
          end if
 
-         buoy_fac = To_inv*grav
          buoy_fac_x = -sin_theta*buoy_fac
          buoy_fac_z =  cos_theta*buoy_fac
-         lapse_x = -lapse0*sin_theta
-         lapse_z =  lapse0*cos_theta
 
          if( ixs .eq. 1 ) then
             u(1,1,1,1) = cmplx(Uo*cos_theta,0.0)
