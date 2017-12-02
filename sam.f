@@ -5,6 +5,7 @@
 
       complex, allocatable, dimension (:,:,:,:) :: u, r, u_sav
       real,    allocatable, dimension (:,:,:,:) :: uu
+      real,    allocatable, dimension (:,:)     :: mean
       real,    allocatable, dimension (:)       :: sample, ek, tk, dk,
      &                                             vt, ek_0, 
      &                                             x_spec, y_spec,
@@ -79,16 +80,21 @@ c ----- in the rhs and write_planes routines.
       n_wp = ceiling( float(Nx*Ny)/float(Nze*Ny_min*nxp*2) ) + 1
 c      print *, 'myid, ipad_r, n_wp = ', myid, ipad_r, n_wp
 
-      Lw = max( 2*Nze,                                  ! main
-     &          2*L_params,                             ! read_header
-     &          (Nx+1)*Ny,                              ! xy_trans_f
-     &          Ny*Nx,                                  ! xy_trans_b
-     &          2*Nze,                                  ! z_trans_f
+      Lw = max( 2*L_params,                             ! read_header
+     &          2*Nz_min*Ny_min,                        ! read_field
      &          2*Nze,                                  ! z_trans_b
-     &          Lm*12      )                            ! spectra
+     &          2*Nze,                                  ! get_mean
+     &          (Nx+1)*Ny,                              ! xy_trans_b
+     &          2*Nze,                                  ! write_planes
+     &          3*Lu,                                   ! vel_max
+     &          Nx*Ny,                                  ! xy_trans_f
+     &          2*Nze,                                  ! z_trans_f
+     &          Lm*12,                                  ! spectra
+     &          2*Nz_min*Ny_min,                        ! write_field
+     &          Lm*2     )                              ! force
 
       allocate( u(Nze,Ny_min,nxp,Lu), r(Nze,Ny_min,nxp,Lr+ipad_r),
-     &          uu(Nx,Ny,nzp,Lr), work(Lw),
+     &          uu(Nx,Ny,nzp,Lr), work(Lw), mean(Nze,Lu),
      &          sample(Lm), ek(Lm), tk(Lm), dk(Lm), vt(Lm), ek_0(Lm) )
       if( i_strat .eq. 1 ) then
          allocate( u_sav(Nz_min,Ny_min,nxp,3:4) )
@@ -156,6 +162,12 @@ c                       r(k,j,i,Lu+1) = the pressure is already here
                call z_trans_b( r(1,1,1,Lu+1), r(1,1,1,1), Nu, i_symm2,
      &                         work(1), work(1), work(Nze+1) )
                Nu1 = 2*Nu
+               if(l_root) then
+                  do n=1, Lu
+                     call get_mean( u(1,1,1,n), i_symm(n), 0,
+     &                              mean(1,n), jump, work )
+                  end do
+               end if
             end if
 
             call z_trans_b( u, r(1,1,1,Lu+1), Nu, i_symm1,
@@ -227,7 +239,7 @@ c ----------- Write planes data, using r as workspace.
 
             if( mod(nt,n_skip_p) .eq. 0 .and. nrk .eq. 1 ) then
                call write_planes( uu, r, r(1,1,1,n_wp), r(1,1,1,n_wp),
-     &                            work )
+     &                            mean, work )
             end if
 
 c ----------- Compute the current right hand side and pressure.  The 

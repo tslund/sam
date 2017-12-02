@@ -2,7 +2,7 @@
 
       include 'sam.h'
 
-      real u(Nx,Ny), du(Nx,Ny)
+      real u(Nx,Ny), du(Nx,Ny), work(*)
 
       do j=1, Ny
          do i=1, Nx

@@ -50,6 +50,13 @@ c ----- Open files for the xz and yz planes data.
      &                       mpi_info_null, fh(40+m), ierr )
       end do
 
+c ----- Open a file for the horizontal means
+
+      if(l_root) then
+         open(unit=11,file='mean.out',form='unformatted',
+     &        access='direct',recl=Nze*Lu*8,action='write')
+      end if
+
 c ----- Only roots initializes statistics and opens ascii output files.
 
       if( .not. l_root ) return

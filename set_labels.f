@@ -38,6 +38,8 @@ c-------------------------------List reals first------------------------
       lab(i) = 'gam'                    ; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'omega'                  ; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'uo'                     ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'shear'                  ; req(i)=F; val(i)=1.0   ; i=i+1
+      lab(i) = 'shear_ratio'            ; req(i)=F; val(i)=2.5   ; i=i+1
       lab(i) = 'flct_u'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'flct_t'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       n_inputs_r = i-1

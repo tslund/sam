@@ -1,32 +1,27 @@
       subroutine initial_field( u, random, ierr )
 
-c***********************************************************************
-c                                                                      *
-c    Initialize a velocity field so that it has prescribed spectrum,   *
-c zero divergence and random phase. The velocity field can also be     *
-c conditioned by a spherical truncation if desired (see k_truncate in  *
-c the argument list description below).                                *
-c                                                                      *
-c INPUT (ARGUMENT LIST):                                               *
-c   i_prob            - flag to control the flow to be initialized:    *
-c                       0-white noise, 1-k^(-5/3), 2-Comte-Bellot,     *
-c                       4-gravity wave in a tilted box,                *
-c                      -4-gravity wave in a non-tilted box             *
-c PASSED IN COMMON                                                     *
-c   k_truncate        - maximum wavenumber passed by spherical         *
-c                       truncation.  Declared as real.  Set > Nx for   *
-c                       no truncation.                                 *
-c                                                                      *
-c OUTPUT                                                               *
-c   u(Lx/2,Ly,Lz,3) - velocity field (dimensioned as complex here).  *
-c                                                                      *
-c***********************************************************************
+c Initialize a velocity field so that it has prescribed spectrum,
+c zero divergence and random phase. The velocity field can also be
+c conditioned by a spherical truncation if desired (see k_truncate in
+c the argument list description below).
+c
+c INPUT (ARGUMENT LIST):
+c   i_prob            - flag to control the flow to be initialized:
+c                       0-white noise
+c                       1-k^(-5/3
+c                       2-Comte-Bellot
+c                       3-Pao spectrum
+c                       4-gravity wave in a tilted box
+c                      -4-gravity wave in a non-tilted box
+c                       5-shear profile in the y-z plane
+c OUTPUT
+c   u(Nze,Ny_min,nxp,Lu) - velocity field
 
       include 'sam.h'
 
       complex u(Nze,Ny_min,nxp,Lu)
       complex  alpha, beta1, div
-      real random(Nz_min,Ny_min,3)
+      real random(Nze,Ny_min,3)
       real k_mag, k_mag1, lambda
       real E(250,3), S(250)
       integer iseed(2)
@@ -45,10 +40,10 @@ c***********************************************************************
       n_frame_p = 0
 
       select case( i_prob )
-         case(0,4,-4); i_type = 0
-         case(1  )   ; i_type = 1
-         case(2  )   ; i_type = 2
-         case default; i_type = 0
+         case(0,4,-4,5); i_type = 0
+         case(1  )     ; i_type = 1
+         case(2  )     ; i_type = 2
+         case default  ; i_type = 0
       end select
 
       if( flct_u .eq. 0.0 .and. i_prob .ne. 2 ) then
@@ -264,6 +259,42 @@ c   *** Initialize a gravity wave
             u(1,1,1,1) = cmplx(Uo*cos_theta,0.0)
             u(1,1,1,3) = cmplx(Uo*sin_theta,0.0)
          end if
+
+      end if
+
+      if( i_prob .eq. 5 ) then
+
+         a = 1.0 + shear_ratio
+         tanh_a = tanh(a)
+         do i=1, 50
+            a_old = a
+            a = (shear_ratio+1.0)*tanh_a/
+     &          (1.0+shear_ratio*(1.0-tanh_a**2))
+            tanh_a = tanh(a)
+            if( abs(a-a_old) .lt. 1.0e-8 ) goto 20
+         end do
+
+20       continue
+
+         scale = (shear*0.5*zL)*1.0/(a - tanh_a)
+
+         dzz = 2.0/float(Nz)
+
+         do k=1, Nz
+            zz = -1.0 + float(k-1)*dzz
+            random(k,1,1) = scale*( tanh(a*zz) - tanh_a*zz )
+         end do
+
+         call rfftf( Nz, random, trigzr )
+
+         u(1,1,1,2) = Nz_inv*cmplx(random(1,1,1),0.0)
+         do k=2, kz_max+1
+            kr = 2*(k-1)
+            ki = kr+1
+            kk = Nz_min+2 - k
+            u( k,1,1,2) = Nz_inv*cmplx(random(kr,1,1), random(ki,1,1))
+            u(kk,1,1,2) = Nz_inv*cmplx(random(kr,1,1),-random(ki,1,1))
+         end do
 
       end if
 

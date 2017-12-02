@@ -13,7 +13,7 @@
       common/params/ xL, yL, zL, c_smag, dt0, cfl0, k_truncate,
      &               z0, To, lapse0, grav, vis, Pr,
      &               amplitude, lambda_x, Gam, omega, Uo,
-     &               flct_u, flct_t,
+     &               shear, shear_ratio, flct_u, flct_t,
      &               Nx, Ny, Nz, i_restart, nt_restart, i_strat, i_les,
      &               n_steps, n_skip_h, n_skip_p, n_skip_v, n_skip_s,
      &               k_xy_plane(9), j_xz_plane(9), i_yz_plane(9),

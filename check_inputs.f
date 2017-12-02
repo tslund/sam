@@ -150,6 +150,11 @@ c   *** other read-in parameter values.
          required(i) = .true.
       end if
 
+      if( i_prob .eq. 5 ) then
+         i = index_param( 'shear', labels, n_inputs )
+         required(i) = .true.
+      end if
+
 c   *** Check again for missing required inputs
 
       do i=1, n_inputs
@@ -188,7 +193,7 @@ c   *** Check for inconsistent parameter values
          goto 60
       end if
 
-      if( i_prob .lt. -4 .or. i_prob .gt. 4 ) then
+      if( i_prob .lt. -4 .or. i_prob .gt. 5 ) then
          i = index_param( 'i_prob', labels, n_inputs )
          goto 60
       end if

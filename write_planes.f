@@ -1,4 +1,4 @@
-      subroutine write_planes( uu, du, u_xz, u_yz, work )
+      subroutine write_planes( uu, du, u_xz, u_yz, mean, work )
 
 c ----- The fields contained in uu array are ordered as u, v, w, [T],
 c ----- p, dudz, dvdz, [dTdz], where the fields involving T are not
@@ -7,7 +7,7 @@ c ----- present for unstratified cases.
       include 'sam.h'
       include 'mpif.h'
 
-      real   uu(Nx,Ny,nzp,Lr), work(Lw)
+      real   uu(Nx,Ny,nzp,Lr), mean(Nze,Lu), work(Lw)
       real   du(Nx,Ny), u_xz(Nx,nzp,2*Lu), u_yz(Ny,nzp,2*Lu)
       real   jump
       integer(kind=mpi_offset_kind) :: offset, offset_0
@@ -29,20 +29,8 @@ c ----- Write the time.
 
 c ----- Write the means.
 
-      n_mean = i_strat + 1
-      n_words_out = Nze*n_mean
-      offset_0 = (n_frame_p-1)*Nze*n_mean*8
-
       if(l_root) then
-         do n=1, n_mean
-            m=1
-            if( n .eq. 2 ) m=4
-            call get_mean( uu(1,1,1,n), i_symm(m), 0,
-     &                     work(Nze*(n-1)+1), jump, work(2*Nze+1) )
-            offset = offset_0 + (n-1)*n_words_out*8
-            call mpi_file_write_at( fh(11), offset, work,
-     &           n_words_out, mpi_double_precision, status, ierr )
-         end do
+         write(11,rec=n_frame_p) mean
       end if
 
 c ----- Write the xy planes.
