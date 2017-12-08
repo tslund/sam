@@ -8,7 +8,7 @@
       complex  diff
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params), write_params
+      logical        fixed(L_params), required(L_params), write_params
 
       write_params = .false.
 
@@ -19,11 +19,13 @@ c------ Set mpi parameters
 
 c------ Get input parameters
 
-      call input( 'input.dat', labels, values, fixed, write_params )
+      call input( 'input.dat', labels, values, required, fixed,
+     &             write_params, ierr )
+      if( ierr .ne. 0 ) stop
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( write_params, ierr )
+      call init( labels, values, write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       call fft_init( )

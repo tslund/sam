@@ -17,9 +17,6 @@ c ----- present for unstratified cases.
 
       n_out = 2*Lu
 
-      i_yz_plane = Nx/2 + 1
-      j_xz_plane = Ny/2 + 1
-
 c ----- Write the time.
 
       if(l_root) then

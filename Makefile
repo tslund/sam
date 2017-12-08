@@ -15,6 +15,7 @@ MPI_PROGRAMS    = sam             \
 SERIAL_PROGRAMS = check           \
                   compare_vel     \
                   planes2vtk      \
+                  remesh          \
                   tst_pointer     \
 
 

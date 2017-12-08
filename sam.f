@@ -15,9 +15,10 @@
       character( 6) ext
       character(12) labels(L_params), fname
       real          values(L_params)
-      logical        fixed(L_params), write_params
+      logical     required(L_params), fixed(L_params), write_params
       integer       i_symm1(4), i_symm2(4), amode
 
+      ierr = 0
       write_params = .true.
 
 c------ Initialize MPI, get myid, numprocs, and test if on root process
@@ -41,15 +42,20 @@ c------ Write a copyright message
 
 c------ Get input parameters
 
-      call input_p( 'input.dat', labels, values, fixed, write_params )
+      call set_labels( labels, values, required, fixed )
+
+      if(l_root) then
+         call input( 'input.dat', labels, values, required, fixed,
+     &                write_params, ierr )
+      end if
+      call stop_on_error( ierr, 1 )
+
+      call assign_static( values )
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( write_params, ierr )
-      if( ierr .ne. 0 ) then
-         call mpi_finalize(ierr)
-         stop
-      end if
+      call init( labels, values, write_params, ierr )
+      call stop_on_error( ierr, 0 )
 
       call fft_init( )
 
@@ -104,8 +110,12 @@ c------ Either read or generate a new velocity field
 
       if( i_restart .eq. 1 ) then
          write(ext,'(i6.6)') nt_restart
-         call read_header( 'header.'//ext, labels, values, fixed,
-     &                     work(1), work(n_params+1) )
+         if(l_root) then
+            call read_header( 'header.'//ext, labels, values, fixed,
+     &                        work(1), work(n_params+1), ierr )
+         end if
+         call stop_on_error( ierr, 1 )
+         call assign_run_time( work )
          call read_field( 'vel.'//ext, u, work )
       else
          call initial_field( u, uu, ierr )
@@ -260,8 +270,9 @@ c ----------- Compute and write spectra and statistics.
                   write(3,10) nt, time, div_max, u_max(1:Lu)
                   write(7,10) nt, time, dt, cfl_x, cfl_y, cfl_z,
      &                        cfl_vis
-                  write(12,10) nt, time, u_var(1:Lu),
-     &                         0.5*(u_var(1)+u_var(2)+u_var(3))
+                  write(12,10) nt, time, u_var(1:3),
+     &                         0.5*(u_var(1)+u_var(2)+u_var(3)),
+     &                         u_var(4:Lu)
 10                format(i6,1p11e12.4)
                   if( i_prob .eq. 2 ) then
                      write(9,20) time*tfact+t0_cbc, energy_w

@@ -15,11 +15,12 @@
       character( 6) ext
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params), write_params
+      logical        fixed(L_params), required(L_params), write_params
       integer       i_symm1(4)
       integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
       integer amode, status(mpi_status_size)
 
+      ierr = 0
       write_params = .false.
 
 c------ Initialize MPI, get myid, numprocs, and test if on root process
@@ -34,11 +35,16 @@ c------ Initialize MPI, get myid, numprocs, and test if on root process
 
 c------ Get input parameters
 
-      call input_p( 'input.dat', labels, values, fixed, write_params )
+      if(l_root) then
+      call input( 'input.dat', labels, values, required, fixed,
+     &             write_params, ierr )
+      end if
+      call stop_on_error( ierr, 1 )
+      call assign_static( values )
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( write_params, ierr )
+      call init( labels, values, write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       call fft_init( )
@@ -84,8 +90,13 @@ c------ Either read or generate a new velocity field
 
       if( i_restart .eq. 1 ) then
          write(ext,'(i6.6)') nt_restart
-         call read_header( 'header.'//ext, labels, values, fixed,
-     &                     work(1), work(n_params+1) )
+         if(l_root) then
+            write(ext,'(i6.6)') nt_restart
+            call read_header( 'header.'//ext, labels, values, fixed,
+     &                        work(1), work(n_params+1), ierr )
+         end if
+         call stop_on_error( ierr, 1 )
+         call assign_run_time( work )
          call read_field( 'vel.'//ext, u, work )
       else
          call initial_field( u, work, ierr )

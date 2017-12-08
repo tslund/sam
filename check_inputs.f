@@ -31,15 +31,21 @@ c   *** Set default planes output positions
       i = index_param( 'n_skip_p', labels, n_inputs )
 
       if( found(i) .and. k_xy_plane(1) .eq. 0 ) then
-         k_xy_plane(1) = Nz/2 + 1
+         k_xy_plane(1) = Nz/2
+         ii = index_param( 'k_xy_plane1', labels, n_inputs )
+         values(ii) = k_xy_plane(1)
       end if
 
       if( found(i) .and. j_xz_plane(1) .eq. 0 ) then
-         j_xz_plane(1) = Ny/2 + 1
+         j_xz_plane(1) = Ny/2
+         ii = index_param( 'j_xz_plane1', labels, n_inputs )
+         values(ii) = j_xz_plane(1)
       end if
 
       if( found(i) .and. i_yz_plane(1) .eq. 0 ) then
-         i_yz_plane(1) = Nx/2 + 1
+         i_yz_plane(1) = Nx/2
+         ii = index_param( 'i_yz_plane1', labels, n_inputs )
+         values(ii) = i_yz_plane(1)
       end if
 
 c   *** Determine the number of planes to be written

@@ -11,12 +11,13 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
       real(4), allocatable, dimension (:,:)   :: u_out
       real(4), allocatable, dimension (:)     :: x, y, z
       real          values(L_params)
-      logical        fixed(L_params), write_params
+      logical        fixed(L_params), required(L_params), write_params
       character(12) labels(L_params), fname
       character( 1) newline, ext1
       character( 4) ext
       character( 8) Nx_str, Ny_str, Nz_str, Nxy_str, Nxz_str, Nyz_str
       character(11) time_string, label(8)
+      character(20) time_line
 
       newline = achar(10)
       l_root = .true.
@@ -24,9 +25,13 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
 
 c   *** Read input parameters and initialize stuff
 
-      call input( 'input.dat', labels, values, fixed, write_params )
+      call input( 'input.dat', labels, values, required, fixed,
+     &             write_params, ierr )
+      if( ierr .ne. 0 ) stop
 
-      call init( write_params, ierr )
+      if( i_restart .eq. 0 ) nt_restart = 0
+
+      call init( labels, values, write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       call fft_init( )
@@ -100,26 +105,27 @@ c   *** Loop over the xy frames, reading and writing the data
 
       u_out = 0.0
 
-      read(3,*,end=99)
-
       do m=1, n_xy_planes
 
          write(ext1,'(i1)') m
 
-         open(unit=10,file='xy'//ext1//'.out',form='unformatted',
+         open(unit=10,file='xy'//ext1//'.dat',form='unformatted',
      &        access='direct',recl=Nx*Ny*2*Lu*8,action='read')
 
          do nf=1, 10000
 
-            read(3,*,end=20) nt, time
+5           read(3,'(a20)',end=20) time_line
+            if( time_line(1:1) .eq. '#' ) goto 5
+            read(time_line,*) nt, time
 
             if( nt .ge. n_start .and. mod(nt,n_skip) .eq. 0 ) then
 
-               n_frame = nt/n_skip_p
-               write(ext,'(i4.4)') n_frame
+               n_frame_out =  nt            /n_skip_p
+               n_frame_dat = (nt-nt_restart)/n_skip_p
+               write(ext,'(i4.4)') n_frame_out
                write(time_string,'(1p,e11.4)') time
 
-               read(10,rec=n_frame+1) u
+               read(10,rec=n_frame_dat+1) u
 
                call deriv1( u(1,1,1), du(1,1,1), Nx, Ny, trigx ,
      &                      k_x, kx_max, wave_x, work )
@@ -214,7 +220,7 @@ c   *** Loop over the xz frames, reading and writing the data
 
          write(ext1,'(i1)') m
 
-         open(unit=10,file='xz'//ext1//'.out',form='unformatted',
+         open(unit=10,file='xz'//ext1//'.dat',form='unformatted',
      &        access='direct',recl=Nx*Nz*2*Lu*8,action='read')
 
          do nf=1, 10000
@@ -223,11 +229,12 @@ c   *** Loop over the xz frames, reading and writing the data
 
             if( nt .ge. n_start .and. mod(nt,n_skip) .eq. 0 ) then
 
-               n_frame = nt/n_skip_p
-               write(ext,'(i4.4)') n_frame
+               n_frame_out =  nt            /n_skip_p
+               n_frame_dat = (nt-nt_restart)/n_skip_p
+               write(ext,'(i4.4)') n_frame_out
                write(time_string,'(1p,e11.4)') time
 
-               read(10,rec=n_frame+1) u
+               read(10,rec=n_frame_dat+1) u
 
                call deriv1( u(1,1,1), du(1,1,1), Nx, Nz, trigx ,
      &                      k_x, kx_max, wave_x, work )
@@ -330,7 +337,7 @@ c   *** Loop over the yz frames, reading and writing the data
 
          write(ext1,'(i1)') m
 
-         open(unit=10,file='yz'//ext1//'.out',form='unformatted',
+         open(unit=10,file='yz'//ext1//'.dat',form='unformatted',
      &        access='direct',recl=Ny*Nz*2*Lu*8,action='read')
 
          do nf=1, 10000
@@ -339,11 +346,12 @@ c   *** Loop over the yz frames, reading and writing the data
 
             if( nt .ge. n_start .and. mod(nt,n_skip) .eq. 0 ) then
 
-               n_frame = nt/n_skip_p
-               write(ext,'(i4.4)') n_frame
+               n_frame_out =  nt            /n_skip_p
+               n_frame_dat = (nt-nt_restart)/n_skip_p
+               write(ext,'(i4.4)') n_frame_out
                write(time_string,'(1p,e11.4)') time
 
-               read(10,rec=n_frame+1) u
+               read(10,rec=n_frame_dat+1) u
 
                call deriv1( u(1,1,1), du(1,1,1), Ny, Nz, trigyr,
      &                      k_y, ky_max, wave_y, work )

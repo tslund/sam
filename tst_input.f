@@ -7,8 +7,9 @@
 
       character(12) labels(L_params)
       real          values(L_params)
-      logical        fixed(L_params), write_params
+      logical        fixed(L_params), required(L_params), write_params
 
+      ierr = 0
       write_params = .true.
 
 c   *** Initialize MPI, get myid, numprocs, and test if on root process
@@ -30,14 +31,23 @@ c   *** Write a copyright message
      &            'Author: Thomas S. Lund, lund@cora.nwra.com',/)
       end if
 
-      call input_p( 'input.dat', labels, values, fixed, write_params )
+      if(l_root) then
+      call input( 'input.dat', labels, values, required, fixed,
+     &             write_params, ierr )
+      end if
+      call stop_on_error( ierr, 1 )
+      call assign_static( values )
 
 c   *** Determine index ranges for each process.
 
       call set_range( Nx, Nz )
 
-      call read_header( 'header.in', labels, values, fixed,
-     &                  work(1), work(n_params+1) )
+      if(l_root) then
+         call read_header( 'header.in', labels, values, fixed,
+     &                     work(1), work(n_params+1), ierr )
+      end if
+      call stop_on_error( ierr, 1 )
+      call assign_run_time( work )
 
       if(l_root) then
          call write_header( 'header.out', labels, values )

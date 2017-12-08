@@ -2,9 +2,9 @@
 
       include 'sam.h'
 
-      character(12) lab(*)
-      real          val(*)
-      logical       req(*), fix(*), F
+      character(12) lab(L_params)
+      real          val(L_params)
+      logical       req(L_params), fix(L_params), F
 
 c   *** All parameter labels must be in lower case!
 c   *** To add a new parameter, add it both to the list below and to the

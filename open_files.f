@@ -28,7 +28,7 @@ c ----- Open files for the xy planes data.
          do m=1, n_xy_planes
             write(ext1,'(i1.1)') m
             if( kk .eq. k_xy_plane(m) ) then
-              open(unit=20+m,file='xy'//ext1//'.out',form='unformatted',
+              open(unit=20+m,file='xy'//ext1//'.dat',form='unformatted',
      &             access='direct',recl=Nx*Ny*8,action='write')
             end if
          end do
@@ -40,13 +40,13 @@ c ----- Open files for the xz and yz planes data.
 
       do m=1, n_xz_planes
          write(ext1,'(i1.1)') m
-         call mpi_file_open( mpi_comm_world, 'xz'//ext1//'.out', amode,
+         call mpi_file_open( mpi_comm_world, 'xz'//ext1//'.dat', amode,
      &                       mpi_info_null, fh(30+m), ierr )
       end do
 
       do m=1, n_yz_planes
          write(ext1,'(i1.1)') m
-         call mpi_file_open( mpi_comm_world, 'yz'//ext1//'.out', amode,
+         call mpi_file_open( mpi_comm_world, 'yz'//ext1//'.dat', amode,
      &                       mpi_info_null, fh(40+m), ierr )
       end do
 
@@ -120,16 +120,16 @@ c ----- Open ascii output files.
 9        format(' (U0*t/M)+t0  E/E_total_0')
       end if
 
-      open(unit=10,file='time.out',access=file_access)
+      open(unit=10,file='time.out',access='sequential')
 
-      if( i_restart .eq. 0 ) write(10,10)
+      write(10,10)
 10    format('#   nt    time  ')
 
       open(unit=12,file='variance.out',access=file_access)
 
       if( i_restart .eq. 0 ) write(12,12)
 12    format('#   nt    time        u_var       v_var       w_var',
-     &       '      0.5u_sq')
+     &       '      0.5u_sq      T_var')
 
 c ----- Write the maximum wavenumbers and individual processor 
 c ----- index ranges

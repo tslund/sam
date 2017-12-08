@@ -1,0 +1,85 @@
+#!/bin/csh -f
+#
+# Simple procedure for determining the call tree for a fortran program.  The
+# The script assumes that each subroutine is stored in a separate file 
+# whose name is the same as the routine name (i.e. routine.f).  The script
+# must be modified to work properly for cases where subroutines are stored
+# in files with names different from the subroutine.  Functions are not 
+# handled currently.
+#
+# usage: call_tree [-q] program[.f]
+#
+# options: -q quiet.  Do not issue warnings if subroutines to not have matching
+#             files.
+#
+#
+
+if ($#argv >= 3) then
+   echo "Too many arguments to call_tree"
+   echo "usage: call_tree [-q] program[.f]"
+   exit 1
+endif
+
+set n = $#argv
+set quiet = 0
+foreach arg ($argv)
+   if ($arg == \-q) then
+      set quiet = 1
+   else if ($arg =~ \-?) then
+      echo "invalid flag sent to call_tree"
+      echo "usage: call_tree [-q] program[.f]"
+      exit 1
+   else
+      set name = $arg:r
+   endif
+end
+
+set routines = ($name)
+set all_routines = ($name)
+set space = '+'
+
+if (-e $name.call_tree) rm $name.call_tree
+
+loop:
+
+   set new = ()
+   foreach routine ($routines)
+
+      if (! -e $routine.f) then
+         if ($quiet == 0) echo "WARNING no file $routine.f"
+      else
+
+         set hits = `grep -i call $routine.f | sed '/^c/d' | sed '/^C/d' | \
+                     awk -F 'call ' '{print $2}' | grep '(' | \
+                     awk -F '(' '{print $1}' | sort | uniq -i`
+
+         if ($quiet == 0) then
+            echo "$space $routine.f - $hits" >>  $name.call_tree
+         endif
+         foreach name1 ($hits)
+            echo $all_routines | tr "[ ]" "[\n]" | grep -qix $name1
+            if ($status == 0) goto redundant
+            if (! -e $name1.f) then
+               if ($quiet == 0) echo "WARNING no file $name1.f"
+            endif
+            set new = ($new $name1)
+            set all_routines = ($all_routines $name1)
+            redundant:
+         end
+
+      endif
+
+   end
+   if ($quiet == 0) echo '' >>  $name.call_tree
+
+   if ($#new == 0) then
+      set all_routines = `echo $all_routines | tr "[ ]" "[\n]" | sort`
+      echo $all_routines
+      if ($quiet == 1) rm $name.call_tree
+      exit 0
+   endif
+
+   set routines = ($new)
+   set space = '+'$space
+
+goto loop

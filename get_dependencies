@@ -1,0 +1,115 @@
+#!/bin/csh -f
+
+# Simple procedure for determining subroutine and header file dependencies 
+# for a fortran program.  Functions are not handled currently.
+#
+# usage: get_dependencies program1[.f] program2[.f] ... programN[.f]
+#
+#
+
+# flatten=0 puts each object file on a single line in the dependencies.make
+# file.  flatten=1 combines all objects on a single line.
+
+set flatten = 1
+
+set lib_patterns = (mpi_ random_ system cpu_time execute_command_line)
+set lib_routines = (put_real_routine_names_here)
+
+if (-e dependencies.make) rm dependencies.make
+
+set all_source_files = ()
+set includes         = ()
+set disloc_routines  = ()
+set disloc_files     = ()
+
+foreach arg ($argv)
+
+   set program = $arg:r
+   set routines = `call_tree -q $program`
+
+   set source_files = ()
+   set object_files = ()
+
+   foreach routine ($routines)
+      if (-e $routine.f) then
+         set source = $routine
+      else
+         foreach pattern ($lib_patterns)
+            if ($routine =~ $pattern*) goto dont_add_to_list
+         end
+         foreach lib ($lib_routines)
+            if ($routine == $lib) goto dont_add_to_list
+         end
+         set n = `echo $disloc_routines | tr "[ ]" "[\n]" | \
+                  grep -inx $routine | awk -F : '{print $1}'`
+         if ($n != '') then
+            set source = $disloc_files[$n]
+            echo $source_files | tr "[ ]" "[\n]" | grep -iqx $source.f
+            if ($status == 0) goto dont_add_to_list
+         else
+            set source = `grep -i $routine *.f | grep -i subroutine | \
+                         head -1 | awk -F : '{print $1}' | sed 's/\.f//'`
+            if ($status != 0) then
+               echo "ERROR file containing routine $routine not found"
+               exit 1
+            endif
+            echo "WARNING routine $routine is contained in file $source.f"
+            set disloc_routines = ($disloc_routines $routine)
+            set disloc_files    = ($disloc_files    $source)
+            echo $source_files | tr "[ ]" "[\n]" | grep -iqx $source.f
+            if ($status == 0) goto dont_add_to_list
+         endif
+      endif
+      set source_files = ($source_files $source.f)
+      set object_files = ($object_files $source.o)
+      dont_add_to_list:
+   end
+
+   foreach file ($source_files)
+      echo $all_source_files | tr "[ ]" "[\n]" | grep -iqx $file
+      if ($status == 1) set all_source_files = ($all_source_files $file)
+   end
+
+   set hits = `grep -i include $source_files | awk -F \' '{print $2}' | \
+               sort | uniq -i`
+   foreach hit ($hits)
+      echo $includes | tr "[ ]" "[\n]" | grep -iqx $hit
+      if ($status == 1) then
+         if ($hit != mpif.h) set includes = ($includes $hit)
+      endif
+   end
+
+   set object_files = `echo $object_files | tr " " "\n" | sort | uniq -i`
+
+   if ($flatten == 1) then
+      echo "${program}: $object_files" >> dependencies.make
+   else
+      set n = 1
+      foreach object ($object_files)
+         if ($n == 1 ) then
+            echo "${program}: $object \" >> dependencies.make
+         else
+            echo "           $object \" >> dependencies.make
+         endif
+         @ n ++
+      end
+   endif
+   echo '' >> dependencies.make
+
+end
+
+set includes = `echo $includes | tr " " "\n" | sort`
+
+foreach include ($includes)
+   set hits = `grep $include $all_source_files  | awk -F : '{print $1}' | \
+               sed 's/\.f/\.o/' | sort | uniq -i`
+   echo ${hits}: $include >> dependencies.make
+   echo '' >> dependencies.make
+end
+
+echo ' '
+set hits = `ls *.f`
+foreach file ($hits)
+   echo $all_source_files | tr "[ ]" "[\n]" | grep -iqx $file
+   if ($status == 1) echo "INFO: file $file is not used for any program"
+end

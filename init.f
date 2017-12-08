@@ -1,7 +1,9 @@
-      subroutine init( write_params, ierr )
+      subroutine init( labels, values, write_params, ierr )
 
       include 'sam.h'
 
+      real          values(L_params)
+      character(12) labels(L_params)
       real lambda
       logical write_params
 
@@ -187,6 +189,8 @@ c   *** point (k=2).
 
          if( i_gw_type .eq. 3 ) then
             Gam = sqrt( N_sq/(omega-k_w*Uo)**2 - 1.0 )
+            i = index_param( 'gam', labels, n_inputs )
+            values(i) = Gam
          end if
 
          m_w = -Gam*abs(k_w)    ! negative for upward propagating energy flux
@@ -194,10 +198,14 @@ c   *** point (k=2).
 
          if( i_gw_type .eq. 1 ) then
             Uo = ( omega - omega_i )/k_w
+            i = index_param( 'uo', labels, n_inputs )
+            values(i) = Uo
          end if
 
          if( i_gw_type .eq. 2 ) then
             omega = omega_i + k_w*Uo
+            i = index_param( 'omega', labels, n_inputs )
+            values(i) = omega
          end if
 
          lambda_z = two_pi/abs(m_w)

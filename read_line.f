@@ -46,8 +46,7 @@ c   *** Check for non-alpha characters and convert to lower case
      &       (ic .gt. 90 .and. ic .lt. 95) .or.
      &        ic .eq. 96                   .or.
      &        ic .gt. 122                       ) then
-              print *, 'ERROR: Invalid character in label = ',
-     &                  label
+            print *, 'ERROR: Invalid character in label = ', label
             ierr = 4
             return
          end if
