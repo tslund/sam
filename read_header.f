@@ -1,13 +1,9 @@
-      subroutine read_header( fname, labels, values, fixed, 
-     &                        values_h, found, ierr )
+      subroutine read_header( fname, values_h, ierr )
 
       include 'sam.h'
 
       character( *) fname
-      character(12) labels(L_params)
-      real          values(L_params), values_h(L_params)
-      logical        fixed(L_params),    found(L_params),
-     &               squak(L_params)
+      real          values_h(L_params)
 
       ierr = 0
 
@@ -21,7 +17,6 @@ c   *** Read the parameter values
 
       call read_params( fname, labels, values_h, found, n_params,
      &                  ierr )
-
       if( ierr .ne. 0 ) return
 
 c   *** Check for inconsistencies between the input and header
@@ -44,14 +39,7 @@ c   *** file values.
 
 c   *** Assign values to the /run_time/ common block
 
-      dt_input = dt
-
-      call assign_params( time, nt, values_h(n_inputs+1), 
-     &                    n_dynpar_r, n_dynpar_i )
-
-      t_start  = time
-      nt_start = nt
-      dt = dt_input
+      call assign_run_time( values_h )
 
       return
       end

@@ -1,10 +1,8 @@
-      subroutine write_header( fname, labels, values )
+      subroutine write_header( fname )
 
       include 'sam.h'
 
       character( *) fname
-      character(12) labels(*)
-      real          values(*)
       pointer(ipr, rdat)
       pointer(ipi, idat)
       real    rdat(L_params)

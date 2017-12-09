@@ -1,23 +1,24 @@
       subroutine grab_input( i_unit, var_name, value, ivalue, ierr )
 
-      character(*) var_name
-      character(12) label, var_name1
+      character(*)  var_name
+      character(len(var_name)) var_name_lower
+      character(12) label
       logical done
 
       ierr = 0
       done = .false.
 
-c   *** Make sure that var_name is all lower case.  We need to make a
-c   *** copy first since the input value may not have a memory address
-
-      var_name1 = var_name
-      call to_lower( var_name1 )
-
       rewind(i_unit)
 
+c   *** read_line already converts labels to lower case.  We convert
+c   *** var_name to lower case here in line in order to compare strictly
+c   *** lower case strings.
+
+      call to_lower( var_name, var_name_lower, len(var_name) )
+
       do while( .not. done )
-         call read_line( i_unit, label, value, ierr, done )
-         if( trim(label) .eq. trim(var_name1) ) then
+         call read_line( i_unit, label, value, done, ierr )
+         if( label .eq. var_name_lower ) then
             ivalue = nint(value)
             return
          end if

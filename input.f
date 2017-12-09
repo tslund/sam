@@ -1,25 +1,31 @@
-      subroutine input( fname, labels, values, required, fixed,
-     &                  write_params, ierr )
+      subroutine input( fname, write_params, ierr )
 
       include 'sam.h'
 
       character( *) fname
       character( 8) default_flag
-      character(12) labels(L_params)
-      real          values(L_params)
-      logical        fixed(L_params), write_params
-      logical     required(L_params), found(L_params)
+      logical       write_params
 
-      call set_labels( labels, values, required, fixed )
+      call set_labels( labels, values, required, fixed, L_params, 
+     &                 n_inputs_r, n_inputs_i, n_inputs,
+     &                 n_dynpar_r, n_dynpar_i, n_dynpar, n_params )
+
+      if( n_params .gt. L_params ) then
+         print *, 'ERROR: The number of input parameters exceeds ',
+     &             the value of L_params'
+         ierr = 1
+         return
+      end if
 
       call read_params(fname, labels, values, found, n_inputs, ierr)
       if( ierr .ne. 0 ) return
 
 c   *** Assign input data to the /params/ common block
 
-      call assign_params( xL, Nx, values, n_inputs_r, n_inputs_i )
+      call assign_params( loc(xL), loc(Nx), values,
+     &                    n_inputs_r, n_inputs_i )
 
-      call check_inputs( labels, values, found, required, ierr )
+      call check_inputs( ierr )
       if( ierr .ne. 0 ) return
 
 c   *** Write the input parameters to file params.out

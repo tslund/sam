@@ -1,28 +1,27 @@
-      subroutine set_labels( lab, val, req, fix )
+      subroutine set_labels(lab, val, req, fix, Np,
+     &                      n_inputs_r, n_inputs_i, n_inputs,
+     &                      n_dynpar_r, n_dynpar_i, n_dynpar, n_params)
 
-      include 'sam.h'
+      character(12) lab(Np)
+      real          val(Np)
+      logical       req(Np), fix(Np), F
 
-      character(12) lab(L_params)
-      real          val(L_params)
-      logical       req(L_params), fix(L_params), F
-
-c   *** All parameter labels must be in lower case!
 c   *** To add a new parameter, add it both to the list below and to the
 c   *** /params/ block in sam.h.  The ordering of parameters here must
 c   *** match the ordering in the /params/ common block!
 
       F= .false.
-      req(1:L_params) = .true.
-      fix(1:L_params) = .true.
-      val(1:L_params) = 0.0
+      req(1:Np) = .true.
+      fix(1:Np) = .true.
+      val(1:Np) = 0.0
 
 c   *** Static input file parameters.  
 
       i = 1
 c-------------------------------List reals first------------------------
-      lab(i) = 'xl'                                              ; i=i+1
-      lab(i) = 'yl'                                              ; i=i+1
-      lab(i) = 'zl'                                              ; i=i+1
+      lab(i) = 'xL'                                              ; i=i+1
+      lab(i) = 'yL'                                              ; i=i+1
+      lab(i) = 'zL'                                              ; i=i+1
       lab(i) = 'c_smag'       ; fix(i)=F; req(i)=F; val(i)=0.01  ; i=i+1
       lab(i) = 'dt0'          ; fix(i)=F; req(i)=F; val(i)=0.01  ; i=i+1
       lab(i) = 'cfl0'         ; fix(i)=F; req(i)=F; val(i)=1.0   ; i=i+1
@@ -35,18 +34,18 @@ c-------------------------------List reals first------------------------
       lab(i) = 'pr'           ; fix(i)=F; req(i)=F; val(i)=1.0   ; i=i+1
       lab(i) = 'amplitude'              ; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'lambda_x'               ; req(i)=F; val(i)=0.0   ; i=i+1
-      lab(i) = 'gam'                    ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'Gam'                    ; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'omega'                  ; req(i)=F; val(i)=0.0   ; i=i+1
-      lab(i) = 'uo'                     ; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'Uo'                     ; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'shear'                  ; req(i)=F; val(i)=1.0   ; i=i+1
       lab(i) = 'shear_ratio'            ; req(i)=F; val(i)=2.5   ; i=i+1
       lab(i) = 'flct_u'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'flct_t'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       n_inputs_r = i-1
 c-------------------------------Integers below this line----------------
-      lab(i) = 'nx'                                              ; i=i+1
-      lab(i) = 'ny'                                              ; i=i+1
-      lab(i) = 'nz'                                              ; i=i+1
+      lab(i) = 'Nx'                                              ; i=i+1
+      lab(i) = 'Ny'                                              ; i=i+1
+      lab(i) = 'Nz'                                              ; i=i+1
       lab(i) = 'i_restart'    ; fix(i)=F; req(i)=F; val(i)=0     ; i=i+1
       lab(i) = 'nt_restart'   ; fix(i)=F; req(i)=F; val(i)=0     ; i=i+1
       lab(i) = 'i_strat'      ;           req(i)=F; val(i)=0     ; i=i+1

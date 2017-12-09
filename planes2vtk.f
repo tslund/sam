@@ -10,9 +10,8 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
       real(4), allocatable, dimension (:,:,:) :: xz_rot
       real(4), allocatable, dimension (:,:)   :: u_out
       real(4), allocatable, dimension (:)     :: x, y, z
-      real          values(L_params)
-      logical        fixed(L_params), required(L_params), write_params
-      character(12) labels(L_params), fname
+      logical       write_params
+      character(12) fname
       character( 1) newline, ext1
       character( 4) ext
       character( 8) Nx_str, Ny_str, Nz_str, Nxy_str, Nxz_str, Nyz_str
@@ -25,13 +24,12 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
 
 c   *** Read input parameters and initialize stuff
 
-      call input( 'input.dat', labels, values, required, fixed,
-     &             write_params, ierr )
+      call input( 'input.dat', write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       if( i_restart .eq. 0 ) nt_restart = 0
 
-      call init( labels, values, write_params, ierr )
+      call init( write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       call fft_init( )

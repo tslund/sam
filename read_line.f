@@ -1,4 +1,4 @@
-      subroutine read_line( i_unit, label, value, ierr, done )
+      subroutine read_line( i_unit, label, value, done, ierr )
 
 c  © 2002 – 2014 NorthWest Research Associates, Inc. All Rights Reserved
 c    Author: Thomas S. Lund, lund@cora.nwra.com

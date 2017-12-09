@@ -6,9 +6,8 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
       include 'sam.h'
 
       complex, allocatable, dimension (:,:)   :: u_old, u_new
-      real          values(L_params), work(2*L_params)
-      logical        fixed(L_params), required(L_params), write_params
-      character(12) labels(L_params)
+      real          work(L_params)
+      logical       write_params
       character( 6) ext
       integer(8) isize_found, isize_expect, n_rec
 
@@ -18,8 +17,7 @@ c    Author: Thomas S. Lund, lund@cora.nwra.com
 
 c   *** Read input parameters for the new mesh
 
-      call input( 'input.dat', labels, values, required, fixed,
-     &             write_params, ierr )
+      call input( 'input.dat', write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       Nx_new = Nx
@@ -42,7 +40,7 @@ c   *** Get the minimal dimensions for the old mesh
       Ny = Ny_old
       Nz = Nz_old
 
-      call init( labels, values, write_params, ierr )
+      call init( write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       Nx_min_old = Nx_min
@@ -58,7 +56,7 @@ c   *** Get the minimal dimensions for the new mesh
       Ny = Ny_new
       Nz = Nz_new
 
-      call init( labels, values, write_params, ierr )
+      call init( write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       Nx_min_new = Nx_min
@@ -82,8 +80,7 @@ c   *** Read the entire old header file
       i_nz = index_param( 'nz', labels, n_inputs )
       values(i_nz) = Nz_old
 
-      call read_header( 'header.in', labels, values, fixed,
-     &                  work(1), work(n_params+1), ierr )
+      call read_header( 'header.in', work(1), ierr )
       if( ierr .ne. 0 ) stop
       if( nt .ne. nt_restart ) then
          print *, 'ERROR nt_restart from input.dat does not match nt ',

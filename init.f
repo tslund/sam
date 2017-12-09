@@ -1,9 +1,7 @@
-      subroutine init( labels, values, write_params, ierr )
+      subroutine init( write_params, ierr )
 
       include 'sam.h'
 
-      real          values(L_params)
-      character(12) labels(L_params)
       real lambda
       logical write_params
 

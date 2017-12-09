@@ -8,7 +8,8 @@
      &     lambda_x, lambda_z, k_w, m_w, N_sq
       complex iunit
       integer fh
-      logical l_root
+      character(12) labels
+      logical l_root, required, fixed, found, squak
 
       common/params/ xL, yL, zL, c_smag, dt0, cfl0, k_truncate,
      &               z0, To, lapse0, grav, vis, Pr,
@@ -23,6 +24,10 @@
       common/run_time/ time, dt, t_stat, nt, n_frame_p, n_hist
 
       common/consts/ pi, two_pi, iunit
+
+      common/inputs/   labels(L_params), values(L_params),
+     &               required(L_params),  fixed(L_params),
+     &                  found(L_params),  squak(L_params)
 
       common/strat/ buoy_fac_x, buoy_fac_z, Pr_inv, To_inv
 

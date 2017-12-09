@@ -1,4 +1,4 @@
-      subroutine check_inputs( labels, values, found, required, ierr )
+      subroutine check_inputs( ierr )
 
 c  © 2002 – 2014 NorthWest Research Associates, Inc. All Rights Reserved
 c    Author: Thomas S. Lund, lund@cora.nwra.com
@@ -10,10 +10,6 @@ c          7 - static dimensions too small
 c          9 - inconsistent input parameter values
 
       include 'sam.h'
-
-      real          values(*)
-      logical        found(*), required(*)
-      character(12) labels(*)
 
       ierr = 0
 
@@ -231,11 +227,15 @@ c   *** Check for inconsistent parameter values
 
       function index_param( param, labels, n_params )
 
-      character(* ) param
-      character(12) labels(n_params)
+      character( *) param
+      character(12) labels(n_params), label_lower
+      character(len(param)) param_lower
+
+      call to_lower( param, param_lower, len(param) )
 
       do i=1, n_params
-         if( trim(param) .eq. trim(labels(i)) ) then
+         call to_lower( labels(i), label_lower, 12 )
+         if( param_lower .eq. label_lower ) then
             index_param = i
             return
          end if

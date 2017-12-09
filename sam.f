@@ -13,9 +13,8 @@
       real jump
       character( 1) ext1
       character( 6) ext
-      character(12) labels(L_params), fname
-      real          values(L_params)
-      logical     required(L_params), fixed(L_params), write_params
+      character(12) fname
+      logical       write_params
       integer       i_symm1(4), i_symm2(4), amode
 
       ierr = 0
@@ -42,19 +41,11 @@ c------ Write a copyright message
 
 c------ Get input parameters
 
-      call set_labels( labels, values, required, fixed )
-
-      if(l_root) then
-         call input( 'input.dat', labels, values, required, fixed,
-     &                write_params, ierr )
-      end if
-      call stop_on_error( ierr, 1 )
-
-      call assign_static( values )
+      call input_p( 'input.dat', write_params )
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( labels, values, write_params, ierr )
+      call init( write_params, ierr )
       call stop_on_error( ierr, 0 )
 
       call fft_init( )
@@ -86,7 +77,7 @@ c ----- in the rhs and write_planes routines.
       n_wp = ceiling( float(Nx*Ny)/float(Nze*Ny_min*nxp*2) ) + 1
 c      print *, 'myid, ipad_r, n_wp = ', myid, ipad_r, n_wp
 
-      Lw = max( 2*L_params,                             ! read_header
+      Lw = max( L_params,                               ! read_header
      &          2*Nz_min*Ny_min,                        ! read_field
      &          2*Nze,                                  ! z_trans_b
      &          2*Nze,                                  ! get_mean
@@ -110,12 +101,7 @@ c------ Either read or generate a new velocity field
 
       if( i_restart .eq. 1 ) then
          write(ext,'(i6.6)') nt_restart
-         if(l_root) then
-            call read_header( 'header.'//ext, labels, values, fixed,
-     &                        work(1), work(n_params+1), ierr )
-         end if
-         call stop_on_error( ierr, 1 )
-         call assign_run_time( work )
+         call read_header_p( 'header.'//ext, work )
          call read_field( 'vel.'//ext, u, work )
       else
          call initial_field( u, uu, ierr )
@@ -287,7 +273,7 @@ c ----------- Write velocity the field.
      &           nt .eq. nt_end ) then
                write(ext,'(i6.6)') nt
                if(l_root) then
-                  call write_header( 'header.'//ext, labels, values )
+                  call write_header( 'header.'//ext )
                end if
                call write_field( 'vel.'//ext, u, work )
             end if

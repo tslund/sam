@@ -13,9 +13,7 @@
       complex diff
       character( 2) nx_str, ny_str, nz_str, ext2
       character( 6) ext
-      character(12) labels(L_params)
-      real          values(L_params)
-      logical        fixed(L_params), required(L_params), write_params
+      logical       write_params
       integer       i_symm1(4)
       integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
       integer amode, status(mpi_status_size)
@@ -35,16 +33,11 @@ c------ Initialize MPI, get myid, numprocs, and test if on root process
 
 c------ Get input parameters
 
-      if(l_root) then
-      call input( 'input.dat', labels, values, required, fixed,
-     &             write_params, ierr )
-      end if
-      call stop_on_error( ierr, 1 )
-      call assign_static( values )
+      call input_p( 'input.dat', write_params )
 
 c------ Initialize constants and other parameter values.  Open files.
 
-      call init( labels, values, write_params, ierr )
+      call init( write_params, ierr )
       if( ierr .ne. 0 ) stop
 
       call fft_init( )
@@ -72,7 +65,7 @@ c ----- in the rhs routine.
       print *, 'myid, frac_r, i_pad_r = ', myid,
      &          float(n_words_r)/float(n_words_r_main), ipad_r
 
-      Lw = max( 2*Nze,                                  ! main
+      Lw = max( Nze,                                    ! main
      &          2*L_params,                             ! read_header
      &          Nz_min*Ny_min*Lu,                       ! initial_field
      &          (Nx+1)*Ny,                              ! xy_trans_f
@@ -90,13 +83,7 @@ c------ Either read or generate a new velocity field
 
       if( i_restart .eq. 1 ) then
          write(ext,'(i6.6)') nt_restart
-         if(l_root) then
-            write(ext,'(i6.6)') nt_restart
-            call read_header( 'header.'//ext, labels, values, fixed,
-     &                        work(1), work(n_params+1), ierr )
-         end if
-         call stop_on_error( ierr, 1 )
-         call assign_run_time( work )
+         call read_header_p( 'header.'//ext, work )
          call read_field( 'vel.'//ext, u, work )
       else
          call initial_field( u, work, ierr )

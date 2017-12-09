@@ -5,9 +5,7 @@
 
       real work(500)
 
-      character(12) labels(L_params)
-      real          values(L_params)
-      logical        fixed(L_params), required(L_params), write_params
+      logical write_params
 
       ierr = 0
       write_params = .true.
@@ -31,23 +29,13 @@ c   *** Write a copyright message
      &            'Author: Thomas S. Lund, lund@cora.nwra.com',/)
       end if
 
-      if(l_root) then
-      call input( 'input.dat', labels, values, required, fixed,
-     &             write_params, ierr )
-      end if
-      call stop_on_error( ierr, 1 )
-      call assign_static( values )
+      call input_p( 'input.dat', write_params )
 
 c   *** Determine index ranges for each process.
 
       call set_range( Nx, Nz )
 
-      if(l_root) then
-         call read_header( 'header.in', labels, values, fixed,
-     &                     work(1), work(n_params+1), ierr )
-      end if
-      call stop_on_error( ierr, 1 )
-      call assign_run_time( work )
+      call read_header_p( 'header.in', work )
 
       if(l_root) then
          call write_header( 'header.out', labels, values )

@@ -68,7 +68,7 @@ c      call assign_vals( labels, rdat, idat, found, n_vars, n_vars_r )
       open(unit=i_unit,file='input.test')
 
       do L=1, 8
-         call read_line( i_unit, label, value, ierr, done )
+         call read_line( i_unit, label, value, done, ierr )
          if( done ) goto 90
          do i=1, n_vars
             if( label .eq. labels(i) ) then
