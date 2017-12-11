@@ -15,7 +15,8 @@ c   *** labels.
       else
          call set_labels( labels, values, required, fixed, L_params, 
      &                    n_inputs_r, n_inputs_i, n_inputs,
-     &                    n_dynpar_r, n_dynpar_i, n_dynpar, n_params )
+     &                    n_dynpar_r, n_dynpar_i, n_dynpar, n_params,
+     &                    ierr )
       end if
       call stop_on_error( ierr, 1 )
 

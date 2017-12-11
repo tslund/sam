@@ -8,14 +8,8 @@
 
       call set_labels( labels, values, required, fixed, L_params, 
      &                 n_inputs_r, n_inputs_i, n_inputs,
-     &                 n_dynpar_r, n_dynpar_i, n_dynpar, n_params )
-
-      if( n_params .gt. L_params ) then
-         print *, 'ERROR: The number of input parameters exceeds ',
-     &             the value of L_params'
-         ierr = 1
-         return
-      end if
+     &                 n_dynpar_r, n_dynpar_i, n_dynpar, n_params, ierr)
+      if( ierr .ne. 0 ) return
 
       call read_params(fname, labels, values, found, n_inputs, ierr)
       if( ierr .ne. 0 ) return

@@ -1,6 +1,7 @@
-      subroutine set_labels(lab, val, req, fix, Np,
-     &                      n_inputs_r, n_inputs_i, n_inputs,
-     &                      n_dynpar_r, n_dynpar_i, n_dynpar, n_params)
+      subroutine set_labels( lab, val, req, fix, Np,
+     &                       n_inputs_r, n_inputs_i, n_inputs,
+     &                       n_dynpar_r, n_dynpar_i, n_dynpar,
+     &                       n_params, ierr )
 
       character(12) lab(Np)
       real          val(Np)
@@ -10,6 +11,7 @@ c   *** To add a new parameter, add it both to the list below and to the
 c   *** /params/ block in sam.h.  The ordering of parameters here must
 c   *** match the ordering in the /params/ common block!
 
+      ierr = 0
       F= .false.
       req(1:Np) = .true.
       fix(1:Np) = .true.
@@ -109,6 +111,12 @@ c-------------------------------Integers below this line----------------
 
       n_inputs_i = n_inputs - n_inputs_r
       n_dynpar_i = n_dynpar - n_dynpar_r
+
+      if( n_params .gt. L_params ) then
+         print *, 'ERROR: The number of input parameters exceeds ',
+     &            'the value of L_params'
+         ierr = 1
+      end if
 
       return
       end
