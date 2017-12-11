@@ -112,7 +112,7 @@ c-------------------------------Integers below this line----------------
       n_inputs_i = n_inputs - n_inputs_r
       n_dynpar_i = n_dynpar - n_dynpar_r
 
-      if( n_params .gt. L_params ) then
+      if( n_params .gt. Np ) then
          print *, 'ERROR: The number of input parameters exceeds ',
      &            'the value of L_params'
          ierr = 1
