@@ -24,7 +24,7 @@ c   u(Nze,Ny_min,nxp,Lu) - velocity field
       real random(Nze,Ny_min,3)
       real k_mag, k_mag1, lambda
       real E(250,3), S(250)
-      integer iseed(2)
+      integer, allocatable, dimension (:) ::  iseed
 
       pi = acos(-1.0)
       two_pi = 2.0*pi
@@ -46,6 +46,9 @@ c   u(Nze,Ny_min,nxp,Lu) - velocity field
          case default  ; i_type = 0
       end select
 
+      call random_seed( size=L_seed)
+      allocate( iseed(L_seed) )
+
       if( flct_u .eq. 0.0 .and. i_prob .ne. 2 ) then
          u(1:Nze,1:Ny_min,1:nxp,1:3) = cmplx(0.0,0.0)
          goto 50
@@ -62,8 +65,7 @@ c   u(Nze,Ny_min,nxp,Lu) - velocity field
          kx2 = k_x(ii)**2
          rkx = wave_x*float(k_x(ii))
          rkx2 = rkx**2
-         iseed(1) = 1234 + ii
-         iseed(2) = 6789 + ii
+         call set_seed( iseed, L_seed, ii )
          call random_seed( put=iseed )
          call random_number( random )
          do j=1, Ny_min
@@ -165,8 +167,7 @@ c   *** Initialize the temperature fluctuations if required.
       do i=1, nxp
          ii = ixs + i-1
          kx2 = k_x(ii)**2
-         iseed(1) = 4321 + ii
-         iseed(2) = 9876 + ii
+         call set_seed( iseed, L_seed, -ii )
          call random_seed( put=iseed )
          call random_number( random )
          do j=1, Ny_min
@@ -297,6 +298,8 @@ c   *** Initialize a gravity wave
          end do
 
       end if
+
+      deallocate( iseed )
 
       return
       end
@@ -472,6 +475,27 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
                end do
             end do
          end do
+      end do
+
+      return
+      end
+
+      subroutine set_seed( iseed, L_seed, my_seed )
+
+      integer iseed(L_seed)
+
+      return
+
+      iseed(1) = 987654321 + my_seed
+
+      if( L_seed .gt. 1 ) then
+         iseed(2) = 123456789
+      end if
+
+      i_flip = 1
+      do i=3, L_seed
+         i_flip = -i_flip
+         iseed(i) = iseed(i-1) + i_flip*iseed(i-2)
       end do
 
       return
