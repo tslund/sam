@@ -139,7 +139,7 @@ c   *** Loop over the xy frames, reading and writing the data
      &                      k_y, ky_max, wave_y, work )
 
                fname = 'xy'//ext1//'_'//ext//'.vtk'
-               open(unit=16,file=fname,form='binary',
+               open(unit=16,file=fname,form='unformatted',
      &              convert='big_endian',access='stream',action='write')
 
                write(16) "# vtk DataFile Version 2.0"//newline//
@@ -248,7 +248,7 @@ c   *** Loop over the xz frames, reading and writing the data
      &                      k_z, kz_max, wave_z, work )
 
                fname = 'xz'//ext1//'_'//ext//'.vtk'
-               open(unit=16,file=fname,form='binary',
+               open(unit=16,file=fname,form='unformatted',
      &              convert='big_endian',access='stream',action='write')
 
                write(16) "# vtk DataFile Version 2.0"//newline//
@@ -365,7 +365,7 @@ c   *** Loop over the yz frames, reading and writing the data
      &                      k_z, kz_max, wave_z, work )
 
                fname = 'yz'//ext1//'_'//ext//'.vtk'
-               open(unit=16,file=fname,form='binary',
+               open(unit=16,file=fname,form='unformatted',
      &              convert='big_endian',access='stream',action='write')
 
                write(16) "# vtk DataFile Version 2.0"//newline//
