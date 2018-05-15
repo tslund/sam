@@ -484,8 +484,6 @@ c   *** Initialize constants for curve fit of Comte-Bellot and Corrsin spectrum
 
       integer iseed(L_seed)
 
-      return
-
       iseed(1) = 987654321 + my_seed
 
       if( L_seed .gt. 1 ) then
