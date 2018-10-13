@@ -7,9 +7,14 @@
       real          val(Np)
       logical       req(Np), fix(Np), F
 
-c   *** To add a new parameter, add it both to the list below and to the
-c   *** /params/ block in sam.h.  The ordering of parameters here must
-c   *** match the ordering in the /params/ common block!
+c   *** Input parameters and their attributes are defined here.  The logical
+c   *** variable fix is true if the parameter should remain fixed upon restart
+c   *** and req is true for a parameter requiring an explicit input value.
+c   *** By default both attributes are true.  val is the default value of an
+c   *** optional parameter not listed in the input file.  Real-values
+c   *** parameters must be listed first, followed by integers.  There are
+c   *** two parameter blocks, one for inputs (static), and a second for
+c   *** run-time (dynamic).  Each block is divided into real and integer lists.
 
       ierr = 0
       F= .false.

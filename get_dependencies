@@ -1,5 +1,9 @@
 #!/bin/csh -f
-
+#
+#  © 2018 NorthWest Research Associates, Inc. All Rights Reserved.
+#    See file license.txt in the repository root for detailed terms.
+#    Author: Thomas S. Lund, lund@cora.nwra.com
+#
 # Simple procedure for determining subroutine and header file dependencies 
 # for a fortran program.  Functions are not handled currently.
 #
@@ -47,7 +51,7 @@ foreach arg ($argv)
             echo $source_files | tr "[ ]" "[\n]" | grep -iqx $source.f
             if ($status == 0) goto dont_add_to_list
          else
-            set source = `grep -i $routine *.f | grep -i subroutine | \
+            set source = `grep -i $routine'(' *.f | grep -i subroutine | \
                          head -1 | awk -F : '{print $1}' | sed 's/\.f//'`
             if ($status != 0) then
                echo "ERROR file containing routine $routine not found"

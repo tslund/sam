@@ -27,10 +27,34 @@ SERIAL_OBJECTS := $(shell grep -L 'mpif\.h' *.f | sed 's:\.f:\.o:')
 
 
 #-------------------------------------------------------------------------------
+#   Rule for syncing the header file with set_labels.f
+
+header: 
+	syncHeader
+
+cgcam.h: set_labels.f
+	syncHeader
+
+
+#-------------------------------------------------------------------------------
 #   Rule for generating dependency information
 
 depend: 
 	get_dependencies $(MPI_PROGRAMS) $(SERIAL_PROGRAMS)
+
+
+#-------------------------------------------------------------------------------
+#   Rule for doing some gentle cleaning
+
+clean: 
+	rm *.o
+
+
+#-------------------------------------------------------------------------------
+#   Rule for doing some more serious cleaning
+
+clean_all: 
+	rm *.o $(SERIAL_PROGRAMS) $(MPI_PROGRAMS)
 
 
 #-------------------------------------------------------------------------------

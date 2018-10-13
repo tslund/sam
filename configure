@@ -1,0 +1,140 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use File::Copy;
+
+# Check to see if a mpi fortran environment exists.  This could be either
+# mpif90 (usually) or ftn (on cray hardware).
+
+my $mpif90Stat = system("which mpif90 > /dev/null 2>&1");
+my $ftnStat    = system("which ftn    > /dev/null 2>&1");
+
+#print "mpif90, ftn = $mpif90Stat $ftnStat\n\n";
+
+if ( ($mpif90Stat != 0) && ($ftnStat !=0) ) {
+  die("\nYou do not appear to have a working mpi/fortran environment\n",
+      "Fix this problem first and then rerun configure\n\n")
+}
+
+# Query either mpif90 or ftn to discover which compiler it calls.
+# ftn --version is not recognized under the cray compiler.  We
+# assume that the cray compiler is active if there is no output from
+# the query.
+
+my ( $output, $mpi_env, $compiler );
+
+if ($mpif90Stat == 0) {
+  $mpi_env = 'mpif90';
+  $output = lc `mpif90 --version`; }
+else {
+  $mpi_env = 'ftn';
+  $output = lc `ftn --version 2>/dev/null`;
+  if ($output eq "") { $output = 'cray' }
+}
+
+# Set the compiler variable based on the detection above
+
+if ( ($output =~ 'ifort') || ($output =~ 'prgenv-intel') ) 
+  { $compiler='intel' }
+elsif ($output =~ 'gnu fortran') 
+  { $compiler = 'gnu' }
+elsif ($output =~ 'pgi') 
+  { $compiler = 'pgi' }
+elsif ($output =~ 'cray') 
+  { $compiler = 'cray' }
+else {
+  $compiler = 'default';
+  print "I could not determine which compiler you are using so I assumed ".
+  "intel\n",
+  "If this is not correct, edit the compiler.spec, compiler.opt, and\n",
+  "compiler.debug files to suit your compiler.\n",
+  "Optionally, look for compiler_type.[spec,opt,debug] in /path_to_cgcam/etc\n",
+  "and copy these over to /path_to_cgcam/src/compiler.[spec,opt,debug]\n";
+}
+
+# set values for the intel compiler (these will be defaults)
+
+my( $FPP, $FC, $CC, $MPIFC, $PP, $FFLAGS, $DFFLAGS, $CFLAGS, $DCFLAGS, 
+    $LDFLAGS, $LIBMPI );
+
+$FPP     = 'fpp';
+$FC      = 'ifort';
+$CC      = 'icc';
+$MPIFC   = 'mpif90';
+$PP      = '';
+#$FFLAGS  = '-r8 -O3 -align all -ip -assume byterecl';
+$FFLAGS  = '-r8 -O3 -finline-functions -ip -assume byterecl';
+$DFFLAGS = '-r8 -C -g -debug all -fpe0 -traceback -assume byterecl';
+$CFLAGS  = '-O3';
+$DCFLAGS = '-g -debug all -traceback';
+$LDFLAGS = '';
+$LIBMPI  = '';
+
+# Modify key inputs for other compilers
+
+if( $compiler eq 'gnu' ) {
+  $FPP     = 'gpp';
+  $FC      = 'gfortran';
+  $CC      = 'gcc';
+  $FFLAGS  = '-fdefault-real-8 -O3 -fcray-pointer';
+  $DFFLAGS = '-fdefault-real-8 -g -Og -fcheck=all -fbacktrace -ffpe-trap=invalid,zero,overflow,underflow,denormal -fcray-pointer';
+  $DCFLAGS = '-g -Og';
+}
+
+if( $compiler eq 'pgi' ) {
+  $FC      = 'pgif90';
+  $CC      = 'pcc';
+  $FFLAGS  = '-r8 -fastsse -Mipa=fast,inline -Minline=levels:3';
+  $DFFLAGS = '-r8 -g -Mbounds -Ktrap=all';
+  $DCFLAGS = '-g';
+}
+
+if( $compiler eq 'cray' ) {
+  $FC      = 'crayftn';
+  $CC      = 'craycc';
+  $FFLAGS  = '-sreal64 -O3 -O ipa5 -O vector3';
+  $DFFLAGS = '-g [-G 1,2] -R a -R b -R c -R s -R p';
+  $DCFLAGS = '-g';
+}
+
+# Modify the mpi compile command for the cray environment
+
+if( $mpi_env eq 'ftn') {
+  $MPIFC = 'ftn';
+}
+
+# Write the compiler.opt and compiler.debug files
+
+open(OPT_FILE,"+>compiler.opt"  ) or die "$0:Could not open compiler.opt  \n";
+open(DBG_FILE,"+>compiler.debug") or die "$0:Could not open compiler.debug\n";
+
+print OPT_FILE
+  "FPP     = $FPP\n".
+  "FC      = $FC\n".
+  "CC      = $CC\n".
+  "MPIFC   = $MPIFC\n".
+  "PP      = $PP\n".
+  "FFLAGS  = $FFLAGS\n".
+  "CFLAGS  = $CFLAGS\n".
+  "LDFLAGS = $LDFLAGS\n".
+  "LIBMPI  = $LIBMPI\n";
+
+print DBG_FILE
+  "FPP     = $FPP\n".
+  "FC      = $FC\n".
+  "CC      = $CC\n".
+  "MPIFC   = $MPIFC\n".
+  "PP      = $PP\n".
+  "FFLAGS  = $DFFLAGS\n".
+  "CFLAGS  = $DCFLAGS\n".
+  "LDFLAGS = $LDFLAGS\n".
+  "LIBMPI  = $LIBMPI\n";
+
+close(OPT_FILE);
+close(DBG_FILE);
+
+# Copy the compiler.opt file to compiler.spec
+
+copy("compiler.opt","compiler.spec") or die "could not copy compiler.opt to
+     compiler.spec: $!";

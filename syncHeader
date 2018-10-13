@@ -1,0 +1,326 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use File::Copy;
+
+# Set the code name here
+
+my $code = 'cgcam';
+
+print "Checking to see if the header file $code.h is consistent with " .
+      "set_labels.f\n\n";
+
+# Extract the real and integer declaration lists as well as the static 
+# and dynamic common blocks from the header file.
+
+my $file = "$code.h";
+open my $headerFile, '<', $file or die "can't open $file: $!";
+
+my ( $line, $listref, $nStaticHeader, $nDynamicHeader,  $nHeader );
+my @realList    = ();
+my @integerList = ();
+my @headerVars  = ();
+my $readAnother = 1;
+
+while ( ! eof($headerFile) ) {
+  if( $readAnother == 1 ) {
+    $line = readline($headerFile);
+    chomp $line;
+  } else {
+    $readAnother = 1;
+  }
+  if( $line =~ '      real' ) {
+    $line =~ s/real//;
+    ($line, $listref) = readBlockFromHeader( $line, $headerFile, \@realList );
+    @realList = @$listref;
+    $readAnother = 0;
+  }
+  if( $line =~ '      integer' ) {
+    $line =~ s/integer//;
+    ($line, $listref) = readBlockFromHeader( $line, $headerFile, \@integerList);
+    @integerList = @$listref;
+    $readAnother = 0;
+  }
+  if( $line =~ '      common/static/' ) {
+    $line =~ s/common\/static\///;
+    ($line, $listref) = readBlockFromHeader( $line, $headerFile, \@headerVars );
+    @headerVars = @$listref;
+    $nStaticHeader = @headerVars;
+    $readAnother = 0;
+  }
+  if( $line =~ '      common/dynamic/' ) {
+    $line =~ s/common\/dynamic\///;
+    ($line, $listref) = readBlockFromHeader( $line, $headerFile, \@headerVars );
+    @headerVars = @$listref;
+    $readAnother = 0;
+  }
+}
+
+close $headerFile or die "can't close $file: $!";
+
+$nHeader = @headerVars;
+$nDynamicHeader = $nHeader - $nStaticHeader;
+
+# Extract a list of input variables from the set_labels.f file.
+
+$file = 'set_labels.f';
+open my $labelsFile, '<', $file or die "can't open $file: $!";
+
+my ( $root, $num, $prev, $posRealDynamic, $posIntegerDynamic,
+     $posEnd, $saveVar, $addition, @labels, @decomp );
+my $posRealStatic     = 0;
+my $posIntegerStatic  = 0;
+my $n = 0;
+my $alreadyRead = 0;
+
+while ( ! eof($labelsFile) ) {
+  if( $alreadyRead == 0 ) {
+    $line = readline($labelsFile); 
+    chomp $line;
+  }
+  $alreadyRead = 0;
+  if( $line =~ 'lab\(i\)' ) {
+    @decomp = split(/'/, $line);
+    $saveVar = $decomp[1];
+#    if( $decomp[1] =~ '[1-9]$','[1-9][0-9]$' ) { 
+    if( $decomp[1] =~ '[1-9]$' ) { 
+      $prev = substr $decomp[1], 0, -1;
+      $readAnother = 1;
+      while( $readAnother != 0 ) {
+        $line = readline($labelsFile); 
+        chomp $line;
+        if( $line =~ 'lab\(i\)' ) {
+          @decomp = split(/'/, $line);
+          if( $decomp[1] =~ '[1-9]$' ) {
+            $root = substr $decomp[1], 0, -1;
+            $num  = substr $decomp[1], -1, 1;
+          }
+          elsif( $decomp[1] =~ '[1-9][0-9]$' ) { 
+            $root = substr $decomp[1], 0, -2;
+            $num  = substr $decomp[1], -2, 2;
+          } else {
+            $root = $decomp[1];
+          }
+          if( $root eq $prev ) {
+            $saveVar = $root . "($num)";
+          } else {
+            $readAnother = 0;
+            $alreadyRead = 1;
+          }
+        } else {
+          $readAnother = 0;
+          $alreadyRead = 1;
+        }
+      }
+    }
+    $n ++;
+    push(@labels, $saveVar);
+  }
+  if( $posIntegerStatic != 0 && $line =~ 'Integers below this line' ) { 
+    $posIntegerDynamic = $n;
+  }
+  if( $posIntegerStatic == 0 && $line =~ 'Integers below this line' ) { 
+    $posIntegerStatic = $n;
+  }
+  if( $line =~ 'Dynamic parameters' ) { 
+    $posRealDynamic = $n;
+  }
+}
+$posEnd = $n;
+
+my $nStaticReal     = $posIntegerStatic - $posRealStatic;
+my $nStaticInteger  = $posRealDynamic - $posIntegerStatic;
+my $nStaticLabels   = $nStaticReal + $nStaticInteger;
+my $nDynamicReal    = $posIntegerDynamic - $posRealDynamic;
+my $nDynamicInteger = $posEnd            - $posIntegerDynamic;
+my $nDynamicLabels  = $nDynamicReal + $nDynamicInteger;
+my $nLabels = $nStaticLabels + $nDynamicLabels;
+
+close $labelsFile or die "can't close $file: $!";
+
+# Check to see if any of the input variables need to be explicitly typed
+# as either real or integer, then check whether or not these variables are
+# contained in the respective declaration statements in the header file.
+# If not, add them to the variable list and signal that the header file
+# should be rebuilt.
+
+my $rebuildHeader = 0;
+
+for( my $i=$posRealStatic; $i<$posIntegerStatic; $i++ ) {
+  if( substr($labels[$i],0,1) =~ '[i-n,I-N]' ) { 
+    $addition = $labels[$i];
+    $addition =~ s/\(\d*\)//;
+    unless( grep( /^$addition$/, @realList ) ) {
+      unshift( @realList, $addition );
+      $rebuildHeader = 1;
+    }
+  }
+}
+
+for( my $i=$posIntegerStatic; $i<$posRealDynamic; $i++ ) {
+  if( substr($labels[$i],0,1) =~ '[a-h,o-z,A-H,O-Z]' ) { 
+    $addition = $labels[$i];
+    $addition =~ s/\(\d*\)//;
+    unless( grep( /^$addition$/, @integerList ) ) {
+      unshift( @integerList, $addition );
+      $rebuildHeader = 1;
+    }
+  }
+}
+
+for( my $i=$posRealDynamic; $i<$posIntegerDynamic; $i++ ) {
+  if( substr($labels[$i],0,1) =~ '[i-n,I-N]' ) {
+    $addition = $labels[$i];
+    $addition =~ s/\(\d*\)//;
+    unless( grep( /^$addition$/, @realList ) ) {
+      unshift( @realList, $addition );
+      $rebuildHeader = 1;
+    }
+  }
+}
+
+for( my $i=$posIntegerDynamic; $i<$posEnd; $i++ ) {
+  if( substr($labels[$i],0,1) =~ '[a-h,o-z,A-H,O-Z]' ) {
+    $addition = $labels[$i];
+    $addition =~ s/\(\d*\)//;
+    unless( grep( /^$addition$/, @integerList ) ) {
+      unshift( @integerList, $addition );
+      $rebuildHeader = 1;
+    }
+  }
+}
+
+# Check to see if the common blocks in the header file are consistent with the
+# variable delcarations in set_labels.
+
+if( $nLabels != $nHeader ) {
+  $rebuildHeader = 1;
+} else {
+  for( my $i=0; $i<$nLabels; $i++ ) {
+    if( $headerVars[$i] ne $labels[$i] ) {$rebuildHeader=1}
+  }
+}
+
+# If the labels are out of sync with the common block we need to rebuild 
+# the header file
+
+if( $rebuildHeader == 1 ) {
+
+  print "Inconsistiencies found; rebuilding $code.h\n\n";
+
+  move( "$code.h", "$code.h.bak" );
+
+  open my $headerOld, '<', "$code.h.bak" or die "can't open $code.h.bak: $!";
+  open my $headerNew, '>', "$code.h"     or die "can't open $code.h:     $!";
+
+  $alreadyRead = 0;
+
+  while ( ! eof($headerOld) ) {
+
+    if( $alreadyRead == 0 ) {
+      $line = readline($headerOld);
+    }
+    $alreadyRead = 0;
+
+    if( $line =~ '      real' ) {
+      writeNewBlock( ' real   ', 0, scalar(@realList)-1, 
+                     '        ', 0, $headerNew,
+                     \@realList );
+      $line = skipOldBlock( $headerOld );
+      $alreadyRead = 1;
+    } elsif( $line =~ '      integer' ) {
+      writeNewBlock( ' integer', 0, scalar(@integerList)-1, ' ', 0, $headerNew,
+                     \@integerList );
+      $line = skipOldBlock( $headerOld );
+      $alreadyRead = 1;
+    } elsif( $line =~ '      common/static/' ) {
+      writeNewBlock( ' common/static/', 0, $posIntegerStatic-1, ' ', 1,
+                     $headerNew, \@labels );
+      writeNewBlock( '&', $posIntegerStatic, $posRealDynamic-1, ' ', 0,
+                     $headerNew, \@labels );
+      $line = skipOldBlock( $headerOld );
+      $alreadyRead = 1;
+    } elsif( $line =~ '      common/dynamic/' ) {
+      writeNewBlock( ' common/dynamic/', $posRealDynamic, $posIntegerDynamic-1,
+                     ' ', 1, $headerNew, \@labels );
+      writeNewBlock( '&', $posIntegerDynamic, $posEnd-1, ' ', 0, $headerNew, 
+                     \@labels );
+      $line = skipOldBlock( $headerOld );
+      $alreadyRead = 1;
+    } else {
+      print $headerNew $line;
+    }
+  }
+
+  close $headerOld or die "can't close $code.h.bak: $!";
+  close $headerNew or die "can't close $code.h:     $!";
+
+} else {
+  print "No inconsistencies found; $code.h has not been changed\n\n";
+}
+
+exit;
+
+
+sub readBlockFromHeader {
+
+  my ( $line, $fileHandle, $listref ) = @_;
+  my @list = @$listref;
+  my $readAnother = 1;
+
+  $line =~ s/\s+//g;         # gets rid of all white space
+  push(@list, split(/,/, $line));
+
+  while ( ! eof($fileHandle) && $readAnother == 1 ) {
+    $line = readline($headerFile);
+    chomp $line;
+    if( $line =~ '&' ) { 
+      $line =~ s/\&//;
+      $line =~ s/\s+//g;         # gets rid of all white space
+      push(@list, split(/,/, $line));
+    } else {
+      $readAnother = 0;
+    }
+  }
+
+  return($line, \@list);
+
+}
+
+
+sub writeNewBlock {
+
+  my( $identifier, $posStart, $posStop, $pad, $commaAtEnd, $fileHandle, 
+      $varsref ) = @_;
+
+  my @vars = @$varsref;
+
+  my $lineOut = '     '.$identifier;
+  for( $n=$posStart; $n<=$posStop; $n++ ) {
+    my $prev = $lineOut;
+    $lineOut = $lineOut . ' ' . $vars[$n];
+    if( length($lineOut) > 71 ) {
+      print $fileHandle "$prev\n";
+      $lineOut = '     &' . $pad . $vars[$n];
+    }
+    unless( $n == $posStop && $commaAtEnd == 0 ) { $lineOut = $lineOut . ',' }
+  }
+  print $fileHandle "$lineOut\n";
+
+}
+
+
+sub skipOldBlock {
+
+  my( $fileHandle ) = @_;
+  my $readAnother = 1;
+
+  while ( ! eof($fileHandle) && $readAnother == 1 ) {
+    $line = readline($fileHandle);
+    unless( $line =~ '&' ) { $readAnother = 0 }
+  }
+
+  return $line;
+
+}

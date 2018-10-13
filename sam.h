@@ -2,26 +2,24 @@
       parameter( Ls=54, L_params=100 )
       parameter( maxp=1024)
 
-      real Nx_inv, Ny_inv, Nz_inv, NxNy_inv, NxNyNz_inv
-      real l_cbc, m_cbc
-      real k_truncate, k_truncate_sq, lapse0, lapse,
-     &     lambda_x, lambda_z, k_w, m_w, N_sq
+      real    Nx_inv, Ny_inv, Nz_inv, NxNy_inv, NxNyNz_inv, l_cbc,
+     &        m_cbc, k_truncate, k_truncate_sq, lapse0, lapse, lambda_x,
+     &        lambda_z, k_w, m_w, N_sq
       complex iunit
       integer fh
       character(12) labels
       logical l_root, required, fixed, found, squak
 
-      common/params/ xL, yL, zL, c_smag, dt0, cfl0, k_truncate,
-     &               z0, To, lapse0, grav, vis, Pr,
-     &               amplitude, lambda_x, Gam, omega, Uo,
-     &               shear, shear_ratio, flct_u, flct_t,
-     &               Nx, Ny, Nz, i_restart, nt_restart, i_strat, i_les,
-     &               n_steps, n_skip_h, n_skip_p, n_skip_v, n_skip_s,
-     &               k_xy_plane(9), j_xz_plane(9), i_yz_plane(9),
-     &               i_stat, i_cfl, nrk_max, n_dealias, iubc_z, 
-     &               i_prob, i_force, k_force
+      common/static/ xL, yL, zL, c_smag, dt0, cfl0, k_truncate, z0, to,
+     & lapse0, grav, vis, pr, amplitude, lambda_x, Gam, omega, Uo,
+     & shear, shear_ratio, flct_u, flct_t,
+     & Nx, Ny, Nz, i_restart, nt_restart, i_strat, i_les, n_steps,
+     & n_skip_h, n_skip_p, n_skip_v, n_skip_s, k_xy_plane(9),
+     & j_xz_plane(9), i_yz_plane(9), i_stat, i_cfl, nrk_max, n_dealias,
+     & iubc_z, i_prob, i_force, k_force
 
-      common/run_time/ time, dt, t_stat, nt, n_frame_p, n_hist
+      common/dynamic/ time, dt, t_stat,
+     & nt, n_frame_p, n_hist
 
       common/consts/ pi, two_pi, iunit
 
