@@ -4,9 +4,12 @@ use strict;
 use warnings;
 use File::Copy;
 
-# Set the code name here
+# Get the name of the repository (assumed to be the name of the code).
 
-my $code = 'cgcam';
+my $repoPath = `git rev-parse --show-toplevel`;
+chomp $repoPath;
+my @splitPath = split(/\//, $repoPath);
+my $code = $splitPath[$#splitPath];
 
 print "Checking to see if the header file $code.h is consistent with " .
       "set_labels.f\n\n";
