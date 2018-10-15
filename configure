@@ -91,8 +91,8 @@ if( $compiler eq 'pgi' ) {
 }
 
 if( $compiler eq 'cray' ) {
-  $FC      = 'crayftn';
-  $CC      = 'craycc';
+  $FC      = 'ftn';
+  $CC      = 'cc';
   $FFLAGS  = '-sreal64 -O3 -O ipa5 -O vector3';
   $DFFLAGS = '-g [-G 1,2] -R a -R b -R c -R s -R p';
   $DCFLAGS = '-g';
