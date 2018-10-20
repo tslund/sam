@@ -48,6 +48,8 @@ c-------------------------------List reals first------------------------
       lab(i) = 'shear_ratio'            ; req(i)=F; val(i)=2.5   ; i=i+1
       lab(i) = 'flct_u'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       lab(i) = 'flct_t'       ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'lambda_z_fs'  ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
+      lab(i) = 'Ri_fs'        ; fix(i)=F; req(i)=F; val(i)=0.0   ; i=i+1
       n_inputs_r = i-1
 c-------------------------------Integers below this line----------------
       lab(i) = 'Nx'                                              ; i=i+1
@@ -97,6 +99,7 @@ c-------------------------------Integers below this line----------------
       lab(i) = 'i_prob'       ;           req(i)=F; val(i)=2     ; i=i+1
       lab(i) = 'i_force'      ; fix(i)=F; req(i)=F; val(i)=0     ; i=i+1
       lab(i) = 'k_force'      ; fix(i)=F; req(i)=F; val(i)=2     ; i=i+1
+      lab(i) = 'i_fs'         ; fix(i)=F; req(i)=F; val(i)=2     ; i=i+1
       n_inputs = i-1
 
 c   *** Dynamic parameters for the header file

@@ -157,6 +157,13 @@ c   *** other read-in parameter values.
          required(i) = .true.
       end if
 
+      if( i_fs .ne. 0 ) then
+         i = index_param( 'lambda_z_fs', labels, n_inputs )
+         required(i) = .true.
+         i = index_param( 'Ri_fs', labels, n_inputs )
+         required(i) = .true.
+      end if
+
 c   *** Check again for missing required inputs
 
       do i=1, n_inputs

@@ -8,7 +8,7 @@ c
 c INPUT (ARGUMENT LIST):
 c   i_prob            - flag to control the flow to be initialized:
 c                       0-white noise
-c                       1-k^(-5/3
+c                       1-k^(-5/3)
 c                       2-Comte-Bellot
 c                       3-Pao spectrum
 c                       4-gravity wave in a tilted box
@@ -40,16 +40,17 @@ c   u(Nze,Ny_min,nxp,Lu) - velocity field
       n_frame_p = 0
 
       select case( i_prob )
-         case(0,4,-4,5); i_type = 0
-         case(1  )     ; i_type = 1
-         case(2  )     ; i_type = 2
+         case(0,4,-4,5); i_type = 0	! white noise
+         case(1  )     ; i_type = 1	! k^-5/3
+         case(2  )     ; i_type = 2	! cbc t=42
+         case(3  )     ; i_type = 5	! Pao
          case default  ; i_type = 0
       end select
 
       call random_seed( size=L_seed)
       allocate( iseed(L_seed) )
 
-      if( flct_u .eq. 0.0 .and. i_prob .ne. 2 ) then
+      if( flct_u .eq. 0.0 .and. i_prob .ne. 2 .and. i_prob .ne. 3 ) then
          u(1:Nze,1:Ny_min,1:nxp,1:3) = cmplx(0.0,0.0)
          goto 50
       end if
@@ -202,6 +203,21 @@ c   *** Add a mean velocty
 
       if( ixs .eq. 1 ) then
          u(1,1,1,1) = cmplx(Uo,0.0)
+      end if
+
+c   *** Add a fine-scale structure
+
+      if( i_fs .ne. 0 ) then
+
+         iz_fs1 = nint(zL/lambda_z_fs) + 1
+         iz_fs2 = Nz_min+2 - iz_fs1
+         amp_fs = lambda_z_fs/(2.0*pi)*sqrt(N_sq/Ri_fs)
+
+         if( ixs .eq. 1 ) then
+            u(iz_fs1,1,1,1) = u(iz_fs1,1,1,1) + amp_fs*cmplx(0.0, 0.5)
+            u(iz_fs2,1,1,1) = u(iz_fs2,1,1,1) + amp_fs*cmplx(0.0,-0.5)
+         end if
+
       end if
 
 c   *** Initialize a gravity wave

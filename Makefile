@@ -32,7 +32,7 @@ SERIAL_OBJECTS := $(shell grep -L 'mpif\.h' *.f | sed 's:\.f:\.o:')
 header: 
 	syncHeader
 
-cgcam.h: set_labels.f
+sam.h: set_labels.f
 	syncHeader
 
 
