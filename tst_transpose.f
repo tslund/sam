@@ -15,8 +15,6 @@
       character( 6) ext
       logical       write_params
       integer       i_symm1(4)
-      integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
-      integer amode, status(mpi_status_size)
 
       ierr = 0
       write_params = .false.

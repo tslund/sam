@@ -121,7 +121,8 @@ c   *** Open data files
 
 c   *** Make sure the old data file is of the correct size
 
-      isize_expect = Nz_min_old*Ny_min_old*Nx_min_old*Lu*16
+      isize_expect = int(Nz_min_old*Ny_min_old,8)*
+     &               int(Nx_min_old*Lu*16,8)
 
       isize_found  = isize_expect
       call get_fsize( 'vel.in', Lu*8, isize_found, n_rec )
@@ -137,9 +138,9 @@ c   *** Read the old data, resize it, and write it out
 
       do n=1, Lu
          do i=1, ie1
-            i_rec_old = (n-1)*Nx_min_old + i
-            i_rec_new = (n-1)*Nx_min_new + i
-            read(1,rec=i_rec_old) u_old
+            irec_old = (n-1)*Nx_min_old + i
+            irec_new = (n-1)*Nx_min_new + i
+            read(1,rec=irec_old) u_old
             do j=1, je1
                do k=1, ke1
                   u_new(k,j) = u_old(k,j)
@@ -167,12 +168,12 @@ c   *** Read the old data, resize it, and write it out
                   u_new(k,j) = u_old(k+ks3,j+js3)
                end do
             end do
-            write(2,rec=i_rec_new) u_new
+            write(2,rec=irec_new) u_new
          end do
          do i=ib2, Nx_min_new
-            i_rec_new = (n-1)*Nx_min_new + i
+            irec_new = (n-1)*Nx_min_new + i
             u_new = cmplx(0.0,0.0)
-            write(2,rec=i_rec_new) u_new
+            write(2,rec=irec_new) u_new
          end do
       end do
 

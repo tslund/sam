@@ -21,7 +21,7 @@
             work(ji) =  rky*tmp
          end do
          do j=2*ky_max+2, Ny
-            work(i) = 0.0
+            work(j) = 0.0
          end do
          call rfftb( Ny, work, trigy )
          do j=1, Ny

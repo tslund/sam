@@ -6,12 +6,11 @@
       complex u(Nze,Ny_min,nxp,Lu), work(Nz_min,Ny_min)
       character(*) fname
       character(6) ext
-      integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
+      integer(kind=mpi_offset_kind) :: offset, irecl_out
       integer amode, status(mpi_status_size)
 
-      n_words_out  = Nz_min*Ny_min
-      i_recl_out   = n_words_out*16
-      i_recl_out_8 = i_recl_out
+      n_words_out = Nz_min*Ny_min
+      irecl_out   = n_words_out*16
 
       amode = ior( mpi_mode_create, mpi_mode_wronly )
 
@@ -26,7 +25,7 @@
                   work(k,j) = u(k,j,i,n)
                end do
             end do
-            offset = ( (n-1)*Nx_min + (ii-1) )*i_recl_out_8
+            offset = int(((n-1)*Nx_min + (ii-1)),8)*irecl_out
             call mpi_file_write_at( fh(3), offset, work,
      &           n_words_out, mpi_double_complex, status, ierr )
          end do

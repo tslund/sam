@@ -250,19 +250,24 @@ c ----------- Compute and write spectra and statistics.
                call spectra( u, r, sample, ek_0, tk, dk, vt, energy_w,
      &                       div_rms, div_max, n_div, nt, work )
                if(l_root) then
-                  write(2,10) nt, time, energy_w
                   write(6,10) nt, time, 
      &                         0.5*(u_var(1)+u_var(2)+u_var(3))
+                  write(2,10) nt, time, energy_w
                   write(3,10) nt, time, div_max, u_max(1:Lu)
                   write(7,10) nt, time, dt, cfl_x, cfl_y, cfl_z,
      &                        cfl_vis
                   write(12,10) nt, time, u_var(1:3),
      &                         0.5*(u_var(1)+u_var(2)+u_var(3)),
      &                         u_var(4:Lu)
+                  call flush( 2)
+                  call flush( 3)
+                  call flush( 7)
+                  call flush(12)
 10                format(i6,1p11e12.4)
                   if( i_prob .eq. 2 ) then
                      write(9,20) time*tfact+t0_cbc, energy_w
 20                   format(1p,2e12.4)
+                     call flush(9)
                   end if
                end if
             end if

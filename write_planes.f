@@ -10,7 +10,9 @@ c ----- present for unstratified cases.
       real   uu(Nx,Ny,nzp,Lr), mean(Nze,Lu), work(Lw)
       real   du(Nx,Ny), u_xz(Nx,nzp,2*Lu), u_yz(Ny,nzp,2*Lu)
       real   jump
-      integer(kind=mpi_offset_kind) :: offset, offset_0
+      integer(kind=mpi_offset_kind) :: offset, offset_0, offset1,
+     &                                 NxNze, xz_block_size,
+     &                                 NyNze, yz_block_size
       integer status(mpi_status_size)
 
       n_frame_p = n_frame_p + 1
@@ -22,6 +24,7 @@ c ----- Write the time.
       if(l_root) then
          write(10,10) nt, time
 10       format(i6,1p,e12.4)
+         flush(10)
       end if
 
 c ----- Write the means.
@@ -47,8 +50,10 @@ c ----- Write the xy planes.
 c ----- Gather and write the xz planes data.
 
       n_words_out = Nx*nzp
-      NxNze = Nx*Nze
-      offset_0 = (n_frame_p-1)*NxNze*n_out*8
+      NxNze = int(Nx,8)*int(Nze,8)
+      xz_block_size = NxNze*int(n_out*8,8)
+      offset_0 = int((n_frame_p-1),8)*xz_block_size
+      offset_1 = offset_0 + int((izs-1),8)*int(Nx*8,8)
 
       do m=1, n_xz_planes
          j = j_xz_plane(m)
@@ -80,7 +85,7 @@ c         write(70+myid,'(i5,1p,4e12.4)') k, uu(40,j,k,n)
          end do
 
          do n=1, n_out
-            offset = offset_0 + ( (n-1)*NxNze + (izs-1)*Nx )*8
+            offset = offset_1 + (n-1)*NxNze*8
 c      print *, 'myid, offset = ', myid, offset
       i=10
 c      do k=1, nzp
@@ -97,8 +102,10 @@ c            stop
 c ----- Gather and write the yz planes data.
 
       n_words_out = Ny*nzp
-      NyNze = Ny*Nze
-      offset_0 = (n_frame_p-1)*NyNze*n_out*8
+      NyNze = int(Ny,8)*int(Nze,8)
+      yz_block_size = NyNze*int(n_out*8,8)
+      offset_0 = int((n_frame_p-1),8)*yz_block_size
+      offset_1 = offset_0 + int((izs-1),8)*int(Ny*8,8)
 
       do m=1, n_yz_planes
          i = i_yz_plane(m)
@@ -129,7 +136,7 @@ c ----- Gather and write the yz planes data.
          end do
 
          do n=1, n_out
-            offset = offset_0 + ( (n-1)*NyNze + (izs-1)*Ny )*8
+            offset = offset_1 + (n-1)*NyNze*8
             call mpi_file_write_at( fh(40+m), offset, u_yz(1,1,n),
      &              n_words_out, mpi_double_precision, status, ierr )
          end do

@@ -4,12 +4,11 @@
       include 'mpif.h'
 
       real u(Nx,Ny,nzp,Lu)
-      integer(kind=mpi_offset_kind) :: offset, i_recl_out_8
+      integer(kind=mpi_offset_kind) :: offset, irecl_out
       integer amode, status(mpi_status_size)
 
-      n_words_out  = Nx*Ny
-      i_recl_out   = n_words_out*8
-      i_recl_out_8 = i_recl_out
+      n_words_out = Nx*Ny
+      irecl_out   = n_words_out*8
 
       amode = ior( mpi_mode_create, mpi_mode_wronly )
 
@@ -19,7 +18,7 @@
       do n=1, Lu
          do k=1, nzp
             kk = izs + k-1
-            offset = ( (n-1)*Nz + (kk-1) )*i_recl_out_8
+            offset = int(((n-1)*Nz + (kk-1)),8)*irecl_out
             call mpi_file_write_at( fh(4), offset, u(1,1,k,n),
      &           n_words_out, mpi_double_precision, status, ierr )
          end do
